@@ -27,7 +27,6 @@ public class LogInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-
         try {
             final Properties prop = new Properties();
             prop.load(this.getClass().getResourceAsStream("/application.properties"));
@@ -82,7 +81,7 @@ public class LogInitializer implements ServletContextListener {
         try {
             fileHandler = new FileHandler(path,2 * 1024 * 1024, 20,true);
             fileHandler.setFormatter(fileHandler.getFormatter());
-            fileHandler.setLevel(Logger.getLogger("").getLevel());
+            fileHandler.setLevel(Logger.getLogger("lk.ijse.dep8.tasks").getLevel());
             Logger.getLogger("lk.ijse.dep8.tasks").addHandler(fileHandler);
         } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
