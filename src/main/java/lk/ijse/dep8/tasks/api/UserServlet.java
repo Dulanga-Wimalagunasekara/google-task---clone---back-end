@@ -31,6 +31,10 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Request");
         }
 
+        if (!(request.getRequestURI().equals("/users") || request.getRequestURI().equals("/users/"))){
+            throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid Request");
+        }
+
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
