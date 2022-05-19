@@ -43,6 +43,7 @@ public class HttpServlet2 extends HttpServlet {
                 errorMessage=new HttpResponseErrorMsg(new Date().getTime(), err.getStatus(), sw.toString(), e.getMessage(), req.getRequestURI());
                 resp.setStatus(err.getStatus());
             }else {
+                resp.setStatus(500);
                 errorMessage=new HttpResponseErrorMsg(new Date().getTime(), 500, sw.toString(), e.getMessage(), req.getRequestURI());
             }
             Jsonb jsonb = JsonbBuilder.create();
