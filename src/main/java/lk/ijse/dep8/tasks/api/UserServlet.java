@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@MultipartConfig(location = "/tmp",maxFileSize = 10*1023*1024)
 @WebServlet(name = "UserServlet", value = "/users/*")
 public class UserServlet extends HttpServlet2 {
 
@@ -26,7 +27,7 @@ public class UserServlet extends HttpServlet2 {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (request.getContentType()==null || !request.getContentType().equals("multipart/form-data")){
+        if (request.getContentType()==null || !request.getContentType().startsWith("multipart/form-data")){
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Request");
         }
 
@@ -44,8 +45,6 @@ public class UserServlet extends HttpServlet2 {
         } else if (picture != null && !picture.getContentType().startsWith("image")) {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid picture");
         }
-
-
 
     }
 }
