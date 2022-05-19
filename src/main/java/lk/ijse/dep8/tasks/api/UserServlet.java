@@ -31,7 +31,7 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Request");
         }
 
-        if (!(request.getRequestURI().equals("/users") || request.getRequestURI().equals("/users/"))){
+        if (request.getPathInfo()!=null && !request.getPathInfo().equals("/")){
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Invalid Request");
         }
 
