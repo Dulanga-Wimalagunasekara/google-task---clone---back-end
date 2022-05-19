@@ -1,5 +1,7 @@
 package lk.ijse.dep8.tasks.dto;
 
+import jakarta.json.bind.annotation.JsonbTransient;
+
 public class UserDTO{
     private String id;
     private String name;
@@ -42,6 +44,7 @@ public class UserDTO{
         this.email = email;
     }
 
+    @JsonbTransient
     public String getPassword() {
         return password;
     }

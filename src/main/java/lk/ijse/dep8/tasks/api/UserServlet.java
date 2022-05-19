@@ -1,5 +1,8 @@
 package lk.ijse.dep8.tasks.api;
 
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -73,6 +76,12 @@ public class UserServlet extends HttpServlet2 {
 
         try{
             connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM user WHERE email=?");
+            statement.setString(1,email);
+            ResultSet que = statement.executeQuery();
+            if (que.next()){
+                throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT,"User already exists");
+            }
             PreparedStatement stm = connection.prepareStatement("INSERT INTO user (id,email, password, full_name,profile_pic) VALUES (?,?,?,?,?)");
             String id  = UUID.randomUUID().toString();
             stm.setString(1,id);
@@ -84,7 +93,6 @@ public class UserServlet extends HttpServlet2 {
             pictureUrl += "/uploads/" + id ;
             stm.setString(5, pictureUrl);
 
-            connection.commit();
 
             int i = stm.executeUpdate();
             if (i!=1){
@@ -93,11 +101,17 @@ public class UserServlet extends HttpServlet2 {
 
             String picturePath=path.resolve(id).toAbsolutePath().toString();
             picture.write(picturePath);
-             if (Files.notExists(Paths.get(picturePath))){
-                 connection.rollback();
-                 throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Can not save the picture");
-             }
+            if (Files.notExists(Paths.get(picturePath))){
+                connection.rollback();
+                throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Can not save the picture");
+            }
 
+            connection.commit();
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            response.setContentType("application/json");
+            UserDTO userDTO = new UserDTO(id, name, email, password, pictureUrl);
+            Jsonb jsonb = JsonbBuilder.create();
+            jsonb.toJson(userDTO,response.getWriter());
         } catch (SQLException e) {
             throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Can not register the user");
         }finally {
