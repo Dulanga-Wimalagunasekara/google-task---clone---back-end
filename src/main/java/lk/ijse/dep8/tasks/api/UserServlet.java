@@ -31,9 +31,7 @@ public class UserServlet extends HttpServlet2 {
 
     @Resource(name = "java:comp/env/jdbc/pool")
     private volatile DataSource pool;
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private UserDTO getUser(HttpServletRequest request){
         if (!(request.getPathInfo() != null &&
                 (request.getPathInfo().replaceAll("/","").length()==36))){
             throw new ResponseStatusException(404, "Not found");
@@ -51,15 +49,19 @@ public class UserServlet extends HttpServlet2 {
                 String email = rst.getString("email");
                 String password = rst.getString("password");
                 String picture = rst.getString("profile_pic");
-                UserDTO userDTO = new UserDTO(userId, name, email, password, picture);
-                Jsonb jsonb = JsonbBuilder.create();
-                jsonb.toJson(userDTO,response.getWriter());
+                return new UserDTO(userId, name, email, password, picture);
+
             }
 
         } catch (SQLException e) {
             throw new ResponseStatusException(500,"Failed to fetch the user info",e);
         }
-
+    }
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        UserDTO userDTO = getUser(request);
+        Jsonb jsonb = JsonbBuilder.create();
+        jsonb.toJson(userDTO,response.getWriter());
     }
 
     @Override
