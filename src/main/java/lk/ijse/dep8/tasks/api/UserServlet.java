@@ -72,7 +72,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         try{
-            connection.setAutoCommit(true);
+            connection.setAutoCommit(false);
             PreparedStatement stm = connection.prepareStatement("INSERT INTO user (id,email, password, full_name,profile_pic) VALUES (?,?,?,?,?)");
             String id  = UUID.randomUUID().toString();
             stm.setString(1,id);
