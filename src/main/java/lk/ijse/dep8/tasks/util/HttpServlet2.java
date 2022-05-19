@@ -23,7 +23,15 @@ public class HttpServlet2 extends HttpServlet {
         try {
             super.service(req, resp);
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, e.getMessage(),e);
+            if (!(e instanceof ResponseStatusException &&
+                    (((ResponseStatusException)e).getStatus() >= 400 &&
+                            ((ResponseStatusException)e).getStatus() < 500))){
+
+                logger.logp(Level.SEVERE, e.getStackTrace()[0].getClassName(),
+                        e.getStackTrace()[0].getMethodName(), e.getMessage(), e);
+
+            }
+
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
 
