@@ -32,7 +32,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         if (!(request.getRequestURI().equals("/users") || request.getRequestURI().equals("/users/"))){
-            throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid Request");
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Invalid Request");
         }
 
         String name = request.getParameter("name");
