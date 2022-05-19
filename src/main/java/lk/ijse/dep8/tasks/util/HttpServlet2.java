@@ -17,11 +17,17 @@ import java.util.logging.Logger;
 @WebServlet(name = "HttpServlet2", value = "/HttpServlet2")
 public class HttpServlet2 extends HttpServlet {
     private Logger logger= Logger.getLogger(HttpServlet2.class.getName());
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    }
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
         try {
-            super.service(req, resp);
+            if (req.getMethod().equals("PATCH")){
+                doPatch(req,resp);
+            }else {
+                super.service(req, resp);
+            }
         } catch (Throwable e) {
             if (!(e instanceof ResponseStatusException &&
                     (((ResponseStatusException)e).getStatus() >= 400 &&

@@ -174,5 +174,8 @@ public class UserServlet extends HttpServlet2 {
             throw  new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to delete the user",e);
         }
     }
+    @Override
+    protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
+    }
 }
