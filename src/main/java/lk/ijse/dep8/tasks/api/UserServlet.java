@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 public class UserServlet extends HttpServlet2 {
 
     private final Logger logger = Logger.getLogger(UserServlet.class.getName());
-
     @Resource(name = "java:comp/env/jdbc/pool")
     private volatile DataSource pool;
     private UserDTO getUser(HttpServletRequest request){
@@ -151,4 +150,29 @@ public class UserServlet extends HttpServlet2 {
             }
         }
     }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        UserDTO user = getUser(req);
+        try (Connection connection = pool.getConnection()) {
+            PreparedStatement stm = connection.prepareStatement("DELETE FROM user WHERE id=?");
+            stm.setString(1,user.getId());
+            int i = stm.executeUpdate();
+            if (i!=1){
+                throw new SQLException();
+            }
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            new Thread(() -> {
+                Path filePath = Paths.get(getServletContext().getRealPath("/"), "uploads", user.getId());
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    logger.warning("Failed to delete the image"+filePath.toAbsolutePath());
+                }
+            }).start();
+        } catch (SQLException e) {
+            throw  new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Failed to delete the user",e);
+        }
+    }
+
 }
