@@ -2,7 +2,7 @@ package lk.ijse.dep8.tasks.util;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-import org.apache.commons.httpclient.HttpStatus;
+
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -17,11 +17,17 @@ import java.util.logging.Logger;
 @WebServlet(name = "HttpServlet2", value = "/HttpServlet2")
 public class HttpServlet2 extends HttpServlet {
     private Logger logger= Logger.getLogger(HttpServlet2.class.getName());
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    }
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
         try {
-            super.service(req, resp);
+            if (req.getMethod().equals("PATCH")){
+                doPatch(req,resp);
+            }else {
+                super.service(req, resp);
+            }
         } catch (Throwable e) {
             if (!(e instanceof ResponseStatusException &&
                     (((ResponseStatusException)e).getStatus() >= 400 &&
@@ -43,6 +49,7 @@ public class HttpServlet2 extends HttpServlet {
                 errorMessage=new HttpResponseErrorMsg(new Date().getTime(), err.getStatus(), sw.toString(), e.getMessage(), req.getRequestURI());
                 resp.setStatus(err.getStatus());
             }else {
+                resp.setStatus(500);
                 errorMessage=new HttpResponseErrorMsg(new Date().getTime(), 500, sw.toString(), e.getMessage(), req.getRequestURI());
             }
             Jsonb jsonb = JsonbBuilder.create();
