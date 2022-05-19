@@ -42,9 +42,8 @@ public class DBInitializer implements ServletContextListener {
                 is.read(bytes);
                 String script = new String(bytes);
                 stm.execute(script);
-            }else {
-
             }
+
         } catch (SQLException | IOException e) {
             logger.log(Level.SEVERE,e.getMessage(),e);
         }
