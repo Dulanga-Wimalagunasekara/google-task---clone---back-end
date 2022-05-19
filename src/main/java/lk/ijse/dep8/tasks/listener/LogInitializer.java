@@ -41,6 +41,7 @@ public class LogInitializer implements ServletContextListener {
                 profile = "dev";
             }
 
+            System.setProperty("app.profiles.active",profile);
             if (profile.equals("dev")) {
                 Logger.getLogger("lk.ijse.dep8.tasks").setLevel(Level.FINE);
             } else {
@@ -51,6 +52,7 @@ public class LogInitializer implements ServletContextListener {
             if (Files.notExists(logDirPath)) {
                 logDir = System.getProperty("java.io.tmpdir");
             }
+
             logDirPath = Paths.get(logDir, "tasks");
             if (Files.notExists(logDirPath)) {
                 Files.createDirectory(logDirPath);
@@ -60,10 +62,12 @@ public class LogInitializer implements ServletContextListener {
             installFileHandler(getPath(path));
             Logger.getLogger("lk.ijse.dep8.tasks").setUseParentHandlers(false);
 
+            /*=============================== Cron Job ==================================*/
             ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
             executor.scheduleWithFixedDelay(() -> installFileHandler(getPath(path)),
                     Duration.between(LocalTime.now(), LocalTime.MIDNIGHT).toMillis(),
                     60 * 60 * 1000 * 24, TimeUnit.MILLISECONDS);
+            /*=============================== End - Cron Job ==================================*/
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
@@ -80,6 +84,7 @@ public class LogInitializer implements ServletContextListener {
             fileHandler.close();
             Logger.getLogger("lk.ijse.dep8.tasks").removeHandler(fileHandler);
         }
+
         try {
             fileHandler = new FileHandler(path,2 * 1024 * 1024, 20,true);
             fileHandler.setFormatter(fileHandler.getFormatter());

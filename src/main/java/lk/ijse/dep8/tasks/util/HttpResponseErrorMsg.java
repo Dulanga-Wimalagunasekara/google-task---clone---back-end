@@ -1,19 +1,21 @@
 package lk.ijse.dep8.tasks.util;
 
+import com.sun.deploy.net.HttpResponse;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class HttpResponseErrorMsg implements Serializable {
     private long timestamp;
     private int status;
-    private String error;
     private String exception;
     private String message;
     private String path;
 
-    public HttpResponseErrorMsg(long timestamp, int status, String error, String exception, String message, String path) {
+    public HttpResponseErrorMsg(long timestamp, int status, String exception, String message, String path) {
         this.timestamp = timestamp;
         this.status = status;
-        this.error = error;
         this.exception = exception;
         this.message = message;
         this.path = path;
@@ -39,15 +41,22 @@ public class HttpResponseErrorMsg implements Serializable {
     }
 
     public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
+        return Arrays.asList(HttpServletResponse.class.getDeclaredFields()).stream().filter(field -> {
+            try {
+                return ((int)field.get(HttpServletResponse.class)) == this.status;
+            } catch (IllegalAccessException e) {
+                return false;
+            }
+        }).findFirst().map(field -> field.getName().replaceFirst("SC_","")
+                .replace("_"," ")).orElse("Internal Server Error");
     }
 
     public String getException() {
-        return exception;
+        if (System.getProperty("app.profiles.active").equals("dev")){
+            return exception;
+        }else {
+            return null;
+        }
     }
 
     public void setException(String exception) {
@@ -75,7 +84,6 @@ public class HttpResponseErrorMsg implements Serializable {
         return "HttpResponseErrorMsg{" +
                 "timestamp=" + timestamp +
                 ", status=" + status +
-                ", error='" + error + '\'' +
                 ", exception='" + exception + '\'' +
                 ", message='" + message + '\'' +
                 ", path='" + path + '\'' +
