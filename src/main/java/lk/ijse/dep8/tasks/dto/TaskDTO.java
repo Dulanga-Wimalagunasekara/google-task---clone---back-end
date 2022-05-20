@@ -7,9 +7,20 @@ public class TaskDTO implements Serializable {
     private String title;
     private Integer position;
     private String notes;
-    private String status;
+    private Status status;
+
+    public TaskDTO() {
+    }
 
     public TaskDTO(Integer id, String title, Integer position, String notes, String status) {
+        this.id = id;
+        this.title = title;
+        this.position = position;
+        this.notes = notes;
+        this.setStatus(status);
+    }
+
+    public TaskDTO(Integer id, String title, Integer position, String notes, Status status) {
         this.id = id;
         this.title = title;
         this.position = position;
@@ -17,8 +28,6 @@ public class TaskDTO implements Serializable {
         this.status = status;
     }
 
-    public TaskDTO() {
-    }
 
     public Integer getId() {
         return id;
@@ -52,25 +61,16 @@ public class TaskDTO implements Serializable {
         this.notes = notes;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = status.equals("completed")? Status.COMPLETED: Status.NEEDS_ACTION;
     }
 
-    public enum Status{
-        NEEDS_ACTION("needsAction"), COMPLETED("completed");
-        private String state;
-        Status(String state){
-            this.state= state;
-        }
-
-        @Override
-        public String toString() {
-            return state;
-        }
+    public void setStatusAsEnum(Status status) {
+        this.status = status;
     }
 
     @Override
@@ -80,7 +80,21 @@ public class TaskDTO implements Serializable {
                 ", title='" + title + '\'' +
                 ", position=" + position +
                 ", notes='" + notes + '\'' +
-                ", status='" + status + '\'' +
+                ", status=" + status +
                 '}';
+    }
+
+    public enum Status{
+        NEEDS_ACTION("needsAction"), COMPLETED("completed");
+        private final String state;
+
+        Status(String state) {
+            this.state = state;
+        }
+
+        @Override
+        public String toString() {
+            return state;
+        }
     }
 }
