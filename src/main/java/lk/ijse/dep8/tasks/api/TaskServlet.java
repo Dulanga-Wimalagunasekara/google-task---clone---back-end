@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,10 +141,46 @@ public class TaskServlet extends HttpServlet {
 
     }
 
+    private void pushUp(Connection connection, int position) throws SQLException {
+        PreparedStatement stm = connection.prepareStatement("UPDATE task t SET position = position-1 WHERE t.position=? ORDER BY t.position");
+        stm.setInt(1,position);
+        int i = stm.executeUpdate();
+
+    }
     private void pushDown(Connection connection, int position) throws SQLException {
         PreparedStatement stm = connection.prepareStatement("UPDATE task t SET position = position+1 WHERE t.position=? ORDER BY t.position");
         stm.setInt(1,position);
         int i = stm.executeUpdate();
 
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        TaskDTO task = getTaskList(req);
+        Connection connection=null;
+        try {
+            connection=pool.get().getConnection();
+            connection.setAutoCommit(false);
+            pushUp(connection,task.getPosition());
+            PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
+            stm.setInt(1,task.getId());
+            if (stm.executeUpdate()!=1){
+                throw new SQLException("Failed to delete the task");
+            }
+            connection.commit();
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } catch (SQLException e) {
+            throw new ResponseStatusException(500, e.getMessage(),e);
+        }finally {
+            try {
+                if (connection!=null){
+                    connection.rollback();
+                    connection.close();
+                    connection.setAutoCommit(true);
+                }
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, e.getMessage(),e);
+            }
+        }
     }
 }
