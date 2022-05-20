@@ -12,12 +12,12 @@ public class DispatcherServlet extends HttpServlet2 {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (req.getPathInfo() == null || req.getPathInfo().equals("/")){
-            getServletContext().getRequestDispatcher("/users").forward(req, resp);
+            getServletContext().getNamedDispatcher("UserServlet").forward(req, resp);
         }else{
             if (req.getPathInfo().matches("/[A-Fa-f0-9\\-]{36}/?")){
-                getServletContext().getRequestDispatcher("/users").forward(req, resp);
+                getServletContext().getNamedDispatcher("UserServlet").forward(req, resp);
             }else if (req.getPathInfo().matches("/[A-Fa-f0-9\\-]{36}/lists(/\\d+)?/?")){
-                getServletContext().getRequestDispatcher("/lists").forward(req, resp);
+                getServletContext().getNamedDispatcher("TaskListServlet").forward(req, resp);
             }
         }
     }

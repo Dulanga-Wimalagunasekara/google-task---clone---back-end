@@ -8,7 +8,7 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
 
-@WebServlet(name = "TaskListServlet", urlPatterns = "/lists")
+@WebServlet(name = "TaskListServlet")
 public class TaskListServlet extends HttpServlet2 {
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
