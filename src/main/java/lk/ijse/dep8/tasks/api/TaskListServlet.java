@@ -2,6 +2,7 @@ package lk.ijse.dep8.tasks.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbException;
 import lk.ijse.dep8.tasks.dto.TaskListDTO;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
@@ -14,12 +15,9 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import javax.sql.DataSource;
 import java.io.IOException;
-<<<<<<< Updated upstream
 import java.sql.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-=======
->>>>>>> Stashed changes
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,7 +47,6 @@ public class TaskListServlet extends HttpServlet2 {
         }
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         matcher.find();
-<<<<<<< Updated upstream
         String userId = matcher.group(1);
 
         try (Connection connection = pool.get().getConnection()) {
@@ -70,20 +67,17 @@ public class TaskListServlet extends HttpServlet2 {
             if (stm.executeUpdate() != 1) {
                 throw new SQLException("Failed to save the task list");
             }
-
             rst = stm.getGeneratedKeys();
             rst.next();
             taskList.setId(rst.getInt(1));
-
             resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_CREATED);
             jsonb.toJson(taskList, resp.getWriter());
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }catch (JsonbException e) {
+            throw new ResponseStatusException(500, e.getMessage(), e);
         }
 
-=======
-        System.out.println(matcher.group(0));
->>>>>>> Stashed changes
     }
 }
