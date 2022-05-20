@@ -25,6 +25,7 @@ public class LogInitializer implements ServletContextListener {
 
     private final Logger logger = Logger.getLogger(LogInitializer.class.getName());
     private FileHandler fileHandler;
+    ScheduledExecutorService executor;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -63,7 +64,8 @@ public class LogInitializer implements ServletContextListener {
             Logger.getLogger("lk.ijse.dep8.tasks").setUseParentHandlers(false);
 
             /*=============================== Cron Job ==================================*/
-            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+            executor = Executors.newSingleThreadScheduledExecutor();
             executor.scheduleWithFixedDelay(() -> installFileHandler(getPath(path)),
                     Duration.between(LocalTime.now(), LocalTime.MIDNIGHT).toMillis(),
                     60 * 60 * 1000 * 24, TimeUnit.MILLISECONDS);
@@ -73,6 +75,11 @@ public class LogInitializer implements ServletContextListener {
             logger.log(Level.SEVERE, e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        executor.shutdownNow();
     }
 
     private String getPath(String logDirPath){
