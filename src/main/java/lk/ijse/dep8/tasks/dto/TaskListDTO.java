@@ -3,10 +3,10 @@ package lk.ijse.dep8.tasks.dto;
 import java.io.Serializable;
 
 public class TaskListDTO implements Serializable {
-    private String id;
+    private Integer id;
     private String title;
 
-    public TaskListDTO(String id, String title) {
+    public TaskListDTO(Integer id, String title) {
         this.id = id;
         this.title = title;
     }
@@ -14,11 +14,11 @@ public class TaskListDTO implements Serializable {
     public TaskListDTO() {
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
