@@ -43,7 +43,7 @@ public class TaskListServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
         }
 
-        String pattern = "/([A-Fa-f0-9\\-]{36})/list/?.*";
+        String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?.*";
         if (!req.getPathInfo().matches(pattern)){
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,"Invalid end point");
         }
