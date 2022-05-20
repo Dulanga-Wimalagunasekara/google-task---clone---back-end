@@ -81,6 +81,35 @@ public class TaskListServlet extends HttpServlet2 {
 
     }
 
+    private TaskListDTO getTaskList(HttpServletRequest req){
+        String pattern = "/([A-Fa-f0-9\\-]{36})/list/(\\d+)/?";
+        if (!req.getPathInfo().matches(pattern)){
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                    String.format("Invalid end point for %s request",req.getMethod()));
+        }
+        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
+        matcher.find();
+        String userId = matcher.group(1);
+        String taskListId = matcher.group(2);
+
+        try (Connection connection = pool.get().getConnection()) {
+            PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id = ? AND t.user_id=?");
+            stm.setString(1, taskListId);
+            stm.setString(1, userId);
+            ResultSet rst = stm.executeQuery();
+            if (rst.next()){
+                int id = rst.getInt("id");
+                String name = rst.getString("name");
+                String user_id = rst.getString("user_id");
+                return new TaskListDTO(id,name,user_id);
+            }else {
+                throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND,"Invalid user id or task list id");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
