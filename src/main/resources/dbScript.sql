@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS task_list
     id      INT AUTO_INCREMENT PRIMARY KEY,
     name    VARCHAR(200) NOT NULL,
     user_id CHAR(36)     NOT NULL,
-    CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id)
+    CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS task
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS task
     position     INT                                        DEFAULT 0,
     status       ENUM ('COMPLETED', 'needsAction') NOT NULL DEFAULT 'needsAction',
     task_list_id INT                               NOT NULL,
-    CONSTRAINT FOREIGN KEY fk_task (task_list_id) REFERENCES task_list (id)
+    CONSTRAINT FOREIGN KEY fk_task (task_list_id) REFERENCES task_list (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sub_task
@@ -34,5 +34,5 @@ CREATE TABLE IF NOT EXISTS sub_task
     position INT                                        DEFAULT 0,
     status   ENUM ('completed', 'needsAction') NOT NULL DEFAULT 'needsAction',
     task_id  INT                               NOT NULL,
-    CONSTRAINT FOREIGN KEY fk_task (task_id) REFERENCES task (id)
+    CONSTRAINT FOREIGN KEY fk_task (task_id) REFERENCES task (id) ON DELETE CASCADE
 );
