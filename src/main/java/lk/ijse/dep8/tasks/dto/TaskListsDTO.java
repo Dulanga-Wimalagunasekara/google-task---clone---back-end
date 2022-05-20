@@ -3,20 +3,20 @@ package lk.ijse.dep8.tasks.dto;
 import java.util.List;
 
 public class TaskListsDTO {
-    private List<TaskListsDTO> items;
+    private List<TaskListDTO> items;
 
-    public TaskListsDTO(List<TaskListsDTO> items) {
+    public TaskListsDTO(List<TaskListDTO> items) {
         this.items = items;
     }
 
     public TaskListsDTO() {
     }
 
-    public List<TaskListsDTO> getItems() {
+    public List<TaskListDTO> getItems() {
         return items;
     }
 
-    public void setItems(List<TaskListsDTO> items) {
+    public void setItems(List<TaskListDTO> items) {
         this.items = items;
     }
 
