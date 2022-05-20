@@ -14,9 +14,12 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import javax.sql.DataSource;
 import java.io.IOException;
+<<<<<<< Updated upstream
 import java.sql.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
+=======
+>>>>>>> Stashed changes
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +49,7 @@ public class TaskListServlet extends HttpServlet2 {
         }
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         matcher.find();
+<<<<<<< Updated upstream
         String userId = matcher.group(1);
 
         try (Connection connection = pool.get().getConnection()) {
@@ -78,5 +82,8 @@ public class TaskListServlet extends HttpServlet2 {
             throw new RuntimeException(e);
         }
 
+=======
+        System.out.println(matcher.group(0));
+>>>>>>> Stashed changes
     }
 }
