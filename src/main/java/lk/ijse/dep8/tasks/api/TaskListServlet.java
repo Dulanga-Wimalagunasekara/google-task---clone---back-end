@@ -52,24 +52,18 @@ public class TaskListServlet extends HttpServlet2 {
         String userId = matcher.group(1);
 
         try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE id = ?");
-            stm.setString(1,userId);
-            ResultSet rst = stm.executeQuery();
-            if (!rst.next()){
-                throw new ResponseStatusException(404,"Invalid User");
-            }
             Jsonb jsonb = JsonbBuilder.create();
             TaskListDTO taskList = jsonb.fromJson(req.getReader(), TaskListDTO.class);
             if (taskList.getTitle().trim().isEmpty()) {
                 throw new ResponseStatusException(400, "Invalid title or title is empty");
             }
-            stm = connection.prepareStatement("INSERT INTO task_list (name,user_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement stm = connection.prepareStatement("INSERT INTO task_list (name,user_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, taskList.getTitle());
             stm.setString(2, userId);
             if (stm.executeUpdate() != 1) {
                 throw new SQLException("Failed to save the task list");
             }
-            rst = stm.getGeneratedKeys();
+            ResultSet rst = stm.getGeneratedKeys();
             rst.next();
             taskList.setId(rst.getInt(1));
             resp.setContentType("application/json");
