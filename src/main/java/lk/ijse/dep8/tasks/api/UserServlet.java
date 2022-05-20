@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-@MultipartConfig(location = "/tmp",maxFileSize = 10*1023*1024)
 @WebServlet(name = "UserServlet")
 public class UserServlet extends HttpServlet2 {
 
