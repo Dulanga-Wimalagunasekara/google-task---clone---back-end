@@ -1,8 +1,9 @@
 package lk.ijse.dep8.tasks.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class TaskListsDTO {
+public class TaskListsDTO implements Serializable{
     private List<TaskListDTO> items;
 
     public TaskListsDTO(List<TaskListDTO> items) {

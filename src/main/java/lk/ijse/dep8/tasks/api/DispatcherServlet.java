@@ -1,6 +1,7 @@
 package lk.ijse.dep8.tasks.api;
 
 import lk.ijse.dep8.tasks.util.HttpServlet2;
+import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
 import javax.servlet.*;
 import javax.servlet.http.*;

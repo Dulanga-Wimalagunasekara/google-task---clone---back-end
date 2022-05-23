@@ -1,7 +1,4 @@
 package lk.ijse.dep8.tasks.util;
-
-import com.sun.deploy.net.HttpResponse;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.Arrays;
