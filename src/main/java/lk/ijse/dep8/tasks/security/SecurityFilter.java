@@ -16,10 +16,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
+import java.util.logging.Logger;
 
 @WebFilter(filterName = "SecurityFilter",urlPatterns = "/*")
 public class SecurityFilter extends HttpFilter {
 
+    private final Logger logger=Logger.getLogger(SecurityFilter.class.getName());
     @Resource(name = "java:comp/env/jdbc/pool")
     private volatile DataSource pool;
     @Override
@@ -68,7 +70,7 @@ public class SecurityFilter extends HttpFilter {
             chain.doFilter(req,res);
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.severe(e.getMessage());
         }
 
 
