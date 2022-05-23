@@ -9,6 +9,7 @@ import jakarta.json.bind.JsonbException;
 import jakarta.json.stream.JsonParser;
 import lk.ijse.dep8.tasks.dto.TaskDTO;
 import lk.ijse.dep8.tasks.dto.TaskListDTO;
+import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
@@ -30,8 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @WebServlet(name = "TaskServlet")
-public class TaskServlet extends HttpServlet {
-
+public class TaskServlet extends HttpServlet2 {
     private AtomicReference<DataSource> pool;
     private final Logger logger = Logger.getLogger(TaskListServlet.class.getName());
     @PostConstruct
@@ -110,7 +110,7 @@ public class TaskServlet extends HttpServlet {
             task.setPosition(0);
             task.setStatusAsEnum(TaskDTO.Status.NEEDS_ACTION);
             connection.setAutoCommit(false);
-            pushDown(connection,0);
+            pushDown(connection,0,taskListId);
             PreparedStatement stm = connection.prepareStatement("INSERT INTO task (title, details, position, status, task_list_id) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, task.getTitle());
             stm.setString(2, task.getNotes());
@@ -147,17 +147,19 @@ public class TaskServlet extends HttpServlet {
 
     }
 
-    private void pushUp(Connection connection, int position) throws SQLException {
-        PreparedStatement stm = connection.prepareStatement("UPDATE task t SET position = position-1 WHERE t.position=? ORDER BY t.position");
-        stm.setInt(1,position);
-        int i = stm.executeUpdate();
-
+    private void pushUp(Connection connection, int pos, int taskListId) throws SQLException {
+        PreparedStatement pstm = connection.
+                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
+        pstm.setInt(1, pos);
+        pstm.setInt(2, taskListId);
+        pstm.executeUpdate();
     }
-    private void pushDown(Connection connection, int position) throws SQLException {
-        PreparedStatement stm = connection.prepareStatement("UPDATE task t SET position = position+1 WHERE t.position=? ORDER BY t.position");
-        stm.setInt(1,position);
-        int i = stm.executeUpdate();
-
+    private void pushDown(Connection connection, int pos, int taskListId) throws SQLException {
+        PreparedStatement pstm = connection.
+                prepareStatement("UPDATE task t SET position = position + 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
+        pstm.setInt(1, pos);
+        pstm.setInt(2, taskListId);
+        pstm.executeUpdate();
     }
 
     @Override
@@ -167,7 +169,7 @@ public class TaskServlet extends HttpServlet {
         try {
             connection=pool.get().getConnection();
             connection.setAutoCommit(false);
-            pushUp(connection,task.getPosition());
+            pushUp(connection,task.getPosition(),task.getTaskListId());
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
             stm.setInt(1,task.getId());
             if (stm.executeUpdate()!=1){
@@ -240,6 +242,63 @@ public class TaskServlet extends HttpServlet {
             resp.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
             jsonb.toJson(task, resp.getWriter());
+        }
+    }
+
+    @Override
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
+            throw new ResponseStatusException(415, "Invalid content type or content type is empty");
+        }
+
+        TaskDTO oldTask = getTaskList(req);
+        Connection connection = null;
+        try {
+            Jsonb jsonb = JsonbBuilder.create();
+            TaskDTO newTask = jsonb.fromJson(req.getReader(), TaskDTO.class);
+
+            if (newTask.getTitle() == null || newTask.getTitle().trim().isEmpty()) {
+                throw new ResponseStatusException(400, "Invalid title or title is empty");
+            } else if (newTask.getPosition() == null || newTask.getPosition() < 0) {
+                throw new ResponseStatusException(400, "Invalid position or position value is empty");
+            }
+
+            connection = pool.get().getConnection();
+            connection.setAutoCommit(false);
+            if (!oldTask.getPosition().equals(newTask.getPosition())) {
+                pushUp(connection, oldTask.getPosition(), oldTask.getTaskListId());
+                pushDown(connection, newTask.getPosition(), oldTask.getTaskListId());
+            }
+
+            PreparedStatement stm = connection.
+                    prepareStatement("UPDATE task SET title=?, details=?, position=?, status=? WHERE id=?");
+            stm.setString(1, newTask.getTitle());
+            stm.setString(2, newTask.getNotes());
+            stm.setInt(3, newTask.getPosition());
+            stm.setString(4, newTask.getStatus());
+            stm.setInt(5, oldTask.getId());
+            if (stm.executeUpdate() != 1) {
+                throw new SQLException("Failed to update the task");
+            }
+
+            connection.commit();
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } catch (JsonbException e) {
+            throw new ResponseStatusException(400, "Invalid JSON");
+        } catch (SQLException e) {
+            throw new ResponseStatusException(500, e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                try {
+                    if (!connection.getAutoCommit()) {
+                        connection.rollback();
+                        connection.setAutoCommit(true);
+                    }
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.log(Level.SEVERE, e.getMessage(), e);
+                }
+            }
         }
     }
 }

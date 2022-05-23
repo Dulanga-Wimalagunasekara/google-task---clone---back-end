@@ -180,7 +180,6 @@ public class TaskListServlet extends HttpServlet2 {
                 parser.next();
                 JsonObject json = Json.createObjectBuilder().add("items", parser.getArray()).build();
                 resp.getWriter().println(json);
-
             } catch (SQLException e) {
                 throw new ResponseStatusException(500, e.getMessage(), e);
             }
