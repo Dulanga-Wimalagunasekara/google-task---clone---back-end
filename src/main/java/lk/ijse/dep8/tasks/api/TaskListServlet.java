@@ -1,10 +1,12 @@
 package lk.ijse.dep8.tasks.api;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
+import jakarta.json.stream.JsonParser;
 import lk.ijse.dep8.tasks.dto.TaskListDTO;
-import lk.ijse.dep8.tasks.dto.TaskListsDTO;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -16,6 +18,7 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,7 +46,7 @@ public class TaskListServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
         }
 
-        String pattern = "/([A-Fa-f0-9\\-]{36})/list/?.*";
+        String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?.*";
         if (!req.getPathInfo().matches(pattern)){
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,"Invalid end point");
         }
@@ -52,24 +55,18 @@ public class TaskListServlet extends HttpServlet2 {
         String userId = matcher.group(1);
 
         try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE id = ?");
-            stm.setString(1,userId);
-            ResultSet rst = stm.executeQuery();
-            if (!rst.next()){
-                throw new ResponseStatusException(404,"Invalid User");
-            }
             Jsonb jsonb = JsonbBuilder.create();
             TaskListDTO taskList = jsonb.fromJson(req.getReader(), TaskListDTO.class);
             if (taskList.getTitle().trim().isEmpty()) {
                 throw new ResponseStatusException(400, "Invalid title or title is empty");
             }
-            stm = connection.prepareStatement("INSERT INTO task_list (name,user_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement stm = connection.prepareStatement("INSERT INTO task_list (name,user_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
             stm.setString(1, taskList.getTitle());
             stm.setString(2, userId);
             if (stm.executeUpdate() != 1) {
                 throw new SQLException("Failed to save the task list");
             }
-            rst = stm.getGeneratedKeys();
+            ResultSet rst = stm.getGeneratedKeys();
             rst.next();
             taskList.setId(rst.getInt(1));
             resp.setContentType("application/json");
@@ -179,7 +176,10 @@ public class TaskListServlet extends HttpServlet2 {
 
                 resp.setContentType("application/json");
                 Jsonb jsonb = JsonbBuilder.create();
-                jsonb.toJson(new TaskListsDTO(taskLists), resp.getWriter());
+                JsonParser parser = Json.createParser(new StringReader(jsonb.toJson(taskLists)));
+                parser.next();
+                JsonObject json = Json.createObjectBuilder().add("items", parser.getArray()).build();
+                resp.getWriter().println(json);
             } catch (SQLException e) {
                 throw new ResponseStatusException(500, e.getMessage(), e);
             }
