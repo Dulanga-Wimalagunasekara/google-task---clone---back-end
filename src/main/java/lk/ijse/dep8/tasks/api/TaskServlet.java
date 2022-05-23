@@ -58,7 +58,7 @@ public class TaskServlet extends HttpServlet2 {
 
         try (Connection connection = pool.get().getConnection()) {
             PreparedStatement stm = connection.
-                    prepareStatement("SELECT * FROM task_list tl INNER JOIN task t WHERE t.id=? AND tl.id=? AND tl.user_id=?");
+                    prepareStatement("SELECT * FROM task_list tl INNER JOIN task t ON t.task_list_id = tl.id WHERE t.id=? AND tl.id=? AND tl.user_id=?");
             stm.setInt(1, taskId);
             stm.setInt(2, taskListId);
             stm.setString(3, userId);
@@ -156,7 +156,7 @@ public class TaskServlet extends HttpServlet2 {
     }
     private void pushDown(Connection connection, int pos, int taskListId) throws SQLException {
         PreparedStatement pstm = connection.
-                prepareStatement("UPDATE task t SET position = position + 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
+                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
         pstm.setInt(1, pos);
         pstm.setInt(2, taskListId);
         pstm.executeUpdate();
