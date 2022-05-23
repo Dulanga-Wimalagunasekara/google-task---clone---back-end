@@ -60,6 +60,7 @@ public class UserServlet extends HttpServlet2 {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         UserDTO userDTO = getUser(request);
+        response.setContentType("application/json");
         Jsonb jsonb = JsonbBuilder.create();
         jsonb.toJson(userDTO, response.getWriter());
     }
