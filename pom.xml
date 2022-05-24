@@ -30,12 +30,6 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.eclipse/yasson -->
         <dependency>
             <groupId>org.eclipse</groupId>
@@ -56,6 +50,15 @@
             <version>1.15</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-httpclient/commons-httpclient -->
+
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

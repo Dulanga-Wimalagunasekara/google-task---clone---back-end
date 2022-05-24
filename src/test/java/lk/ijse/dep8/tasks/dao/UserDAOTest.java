@@ -4,6 +4,9 @@ import lk.ijse.dep8.tasks.dto.UserDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.opentest4j.AssertionFailedError;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -29,9 +32,10 @@ class UserDAOTest {
         }
 
     }
-    @Test
-    void existsUser() throws SQLException {
-        boolean b = UserDAO.existsUser(connection, "dulanga10@ijse.lk");
+    @ParameterizedTest
+    @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
+    void existsUser(String arg) throws SQLException {
+        boolean b = UserDAO.existsUser(connection, arg);
         assertTrue(b);
     }
 
@@ -43,10 +47,46 @@ class UserDAOTest {
         assertTrue(b);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
+    void getUser(/*Given*/String val)throws SQLException{
+        //When
+        UserDTO user = UserDAO.getUser(connection, val);
+
+        //Then
+        assertNotNull(user);
+    }
+
     @AfterEach
     void tearDown() throws SQLException {
         connection.rollback();
         connection.setAutoCommit(true);
         connection.close();
+    }
+
+    @Test
+    void deleteUser() throws SQLException {
+        //Given
+        String id ="d6348360-04fa-4931-9e64-99d84fb34531";
+
+        //When
+        UserDAO.deleteUser(connection,id);
+
+        //Then
+        assertThrows(AssertionFailedError.class,() -> existsUser(id));
+    }
+
+    @Test
+    void updateUser() throws SQLException {
+        //Given
+        UserDTO user = UserDAO.getUser(connection, "bd3f1de4-b188-43b4-b0ee-1ef205502149");
+        user.setName("Gihara plus");
+
+        //When
+        UserDAO.updateUser(connection,user);
+
+        //Then
+        UserDTO user1 = UserDAO.getUser(connection, "newone222@ijse.lk");
+        assertEquals(user,user1);
     }
 }
