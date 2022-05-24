@@ -1,6 +1,7 @@
 package lk.ijse.dep8.tasks.dao;
 
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
 import lk.ijse.dep8.tasks.entity.User;
 
 import java.sql.*;
@@ -47,6 +48,9 @@ public class UserDAO {
 
     public void deleteUserById(String userId){
         try {
+            if (!existsById(userId)){
+                throw new DataAccessException("No user Found!");
+            }
             PreparedStatement stm = connection.prepareStatement("DELETE FROM user WHERE id=?");
             stm.setString(1,userId);
             if (stm.executeUpdate()!=1){
