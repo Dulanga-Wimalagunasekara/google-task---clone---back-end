@@ -73,6 +73,5 @@ public class SecurityFilter extends HttpFilter {
             logger.severe(e.getMessage());
         }
 
-
     }
 }
