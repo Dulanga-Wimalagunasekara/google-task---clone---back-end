@@ -1,71 +1,123 @@
 package lk.ijse.dep8.tasks.dao;
 
-import lk.ijse.dep8.tasks.dto.UserDTO;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+import lk.ijse.dep8.tasks.entity.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.UUID;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class UserDAO {
-    public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException{
-        PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE email=? OR id=?");
-        stm.setString(1,emailOrId);
-        stm.setString(2,emailOrId);
-        ResultSet rst = stm.executeQuery();
-        if (rst.next()){
-            return new UserDTO(rst.getString("id"),
-                    rst.getString("full_name"),
-                    rst.getString("email"),
-                    rst.getString("password"),
-                    rst.getString("profile_pic"));
-        }else {
-            return null;
-        }
-    }
-    public  UserDTO saveUser(Connection con,UserDTO user)throws SQLException{
-        PreparedStatement stm = con.prepareStatement("INSERT INTO user (id,email, password, full_name,profile_pic) VALUES (?,?,?,?,?)");
-        String id = UUID.randomUUID().toString();
-        stm.setString(1, user.getId());
-        stm.setString(2, user.getEmail());
-        stm.setString(3, user.getPassword());
-        stm.setString(4, user.getName());
-        stm.setString(5, user.getPicture());
-        if (stm.executeUpdate() !=1){
-            throw new SQLException("Failed to save the user");
-        }
-        return user;
+
+    private Connection connection;
+
+    public UserDAO(Connection connection){
+        this.connection=connection;
     }
 
-    public  void updateUser(Connection connection,UserDTO user)throws SQLException{
-        PreparedStatement stm = connection.
-                prepareStatement("UPDATE user SET full_name=?, password=?, profile_pic=? WHERE id=?");
-        stm.setString(1, user.getName());
-        stm.setString(2, user.getPassword());
-        stm.setString(3, user.getPicture());
-        stm.setString(4, user.getId());
-        if (stm.executeUpdate()!=1){
-            throw new SQLException("Failed to Update the User");
+    public User saveUser(User user){
+        try {
+            if (!existsById(user.getId())){
+                PreparedStatement stm = connection.prepareStatement("INSERT INTO user (id, email, password, full_name, profile_pic) VALUES (?,?,?,?,?)");
+                stm.setString(1,user.getId());
+                stm.setString(2,user.getEmail());
+                stm.setString(3,user.getPassword());
+                stm.setString(4,user.getFullName());
+                stm.setString(5,user.getProfilePic());
+                if (stm.executeUpdate()!=1){
+                    throw new SQLException("Failed to save the user");
+                }
+            }else {
+                PreparedStatement stm = connection.prepareStatement("UPDATE user SET email=?, password =?, full_name=?, profile_pic=? WHERE id=?");
+                stm.setString(1,user.getEmail());
+                stm.setString(2,user.getPassword());
+                stm.setString(3,user.getFullName());
+                stm.setString(4,user.getProfilePic());
+                stm.setString(5,user.getId());
+                if (stm.executeUpdate()!=1){
+                    throw new SQLException("Failed to update the user");
+                }
+            }
+            return user;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public  void deleteUser(Connection con,String id)throws SQLException{
-        PreparedStatement stm = con.prepareStatement("DELETE FROM user WHERE id=?");
-        stm.setString(1,id);
-        if (stm.executeUpdate()!=1) {
-            throw new SQLException("Failed to delete the user");
+    public void deleteUserById(String userId){
+        try {
+            PreparedStatement stm = connection.prepareStatement("DELETE FROM user WHERE id=?");
+            stm.setString(1,userId);
+            if (stm.executeUpdate()!=1){
+                throw new SQLException("Failed to delete the user");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
     }
-    public  boolean existsUser(Connection con, String emailOrId) throws SQLException {
-        PreparedStatement statement = con.prepareStatement("SELECT * FROM user WHERE email=? OR id=?");
-        statement.setString(1, emailOrId);
-        statement.setString(2, emailOrId);
-        return (statement.executeQuery().next());
 
+    public Optional<User> findUserById(String userId){
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE id=?");
+            stm.setString(1,userId);
+            ResultSet rst = stm.executeQuery();
+            if (rst.next()){
+                return Optional.of(new User(rst.getString("id"),
+                        rst.getString("email"),
+                        rst.getString("password"),
+                        rst.getString("full_name"),
+                        rst.getString("profile_pic")));
+            }else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    public boolean existsById(String userId){
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT id FROM user WHERE id=?");
+            stm.setString(1,userId);
+            return stm.executeQuery().next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    public List<User> findAllUsers(String userId){
+        try {
+            Statement stm = connection.createStatement();
+            ResultSet rst = stm.executeQuery("SELECT * FROM user");
+            List<User> users = new ArrayList<>();
+            while (rst.next()){
+                users.add(new User(rst.getString("id"),
+                        rst.getString("email"),
+                        rst.getString("password"),
+                        rst.getString("full_name"),
+                        rst.getString("profile_pic")));
+            }
+            return users;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long countUsers(){
+        try {
+            Statement stm = connection.createStatement();
+            ResultSet rst = stm.executeQuery("SELECT COUNT(*) AS count FROM user");
+            if (rst.next()){
+                return rst.getLong("count");
+            }
+            return 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*This is the bare minimum requirement. There can be any other methods and attributes here*/
 
 }

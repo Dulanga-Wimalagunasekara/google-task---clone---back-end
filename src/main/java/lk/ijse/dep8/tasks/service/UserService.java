@@ -1,6 +1,6 @@
 package lk.ijse.dep8.tasks.service;
 
-import lk.ijse.dep8.tasks.dao.UserDAO;
+import lk.ijse.dep8.tasks.dao.oldUserDAO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -26,7 +26,7 @@ public class UserService {
                 user.setPicture(user.getPicture() + user.getId());
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDTO savedUser = new UserDAO().saveUser(connection, user);
+            UserDTO savedUser = new oldUserDAO().saveUser(connection, user);
             if (picture != null){
                 Path path = Paths.get(appLocation, "uploads");
                 if (Files.notExists(path)) {
@@ -49,7 +49,7 @@ public class UserService {
         try {
             connection.setAutoCommit(false);
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            new UserDAO().updateUser(connection,user);
+            new oldUserDAO().updateUser(connection,user);
 
             Path path = Paths.get(appLocation, "uploads");
             Path picturePath = path.resolve(user.getId());
@@ -78,7 +78,7 @@ public class UserService {
     }
 
     public  void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
-        new UserDAO().deleteUser(connection,id);
+        new oldUserDAO().deleteUser(connection,id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
             try {
@@ -90,10 +90,10 @@ public class UserService {
 
     }
     public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        return new UserDAO().getUser(connection,emailOrId);
+        return new oldUserDAO().getUser(connection,emailOrId);
     }
 
     public  boolean existsUser(Connection con, String emailOrId) throws SQLException {
-        return new UserDAO().existsUser(con,emailOrId);
+        return new oldUserDAO().existsUser(con,emailOrId);
     }
 }
