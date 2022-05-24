@@ -2,6 +2,7 @@ package lk.ijse.dep8.tasks.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import lk.ijse.dep8.tasks.dao.UserDAO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
@@ -97,6 +98,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         Connection connection = null;
+
         try {
             connection = pool.getConnection();
         } catch (SQLException e) {
@@ -104,10 +106,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         try {
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM user WHERE email=?");
-            statement.setString(1, email);
-            ResultSet que = statement.executeQuery();
-            if (que.next()) {
+            if (UserDAO.existsUser(connection,email)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT, "User already exists");
             }
             connection.setAutoCommit(false);
