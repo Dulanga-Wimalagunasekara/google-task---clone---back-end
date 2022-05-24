@@ -69,10 +69,10 @@ public class TaskServlet extends HttpServlet2 {
                 String status = rst.getString("status");
                 return new TaskDTO(taskId, title, position, details, status, taskListId);
             } else {
-                throw new ResponseStatusException(404, "Invalid user id or task list id");
+                throw new ResponseStatusException(404, "Invalid user id or Task list id");
             }
         } catch (SQLException e) {
-            throw new ResponseStatusException(500, "Failed to fetch task list details");
+            throw new ResponseStatusException(500, "Failed to fetch Task list details");
         }
     }
     @Override
@@ -98,7 +98,7 @@ public class TaskServlet extends HttpServlet2 {
             stm1.setInt(1,taskListId);
             stm1.setString(2,userId);
             if (!stm1.executeQuery().next()) {
-                throw new ResponseStatusException(404, "Invalid user id for task list id");
+                throw new ResponseStatusException(404, "Invalid user id for Task list id");
             }
 
             Jsonb jsonb = JsonbBuilder.create();
@@ -118,7 +118,7 @@ public class TaskServlet extends HttpServlet2 {
             stm.setInt(5, taskListId);
 
             if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to save the task list");
+                throw new SQLException("Failed to save the Task list");
             }
 
             ResultSet rst = stm.getGeneratedKeys();
@@ -172,7 +172,7 @@ public class TaskServlet extends HttpServlet2 {
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
             stm.setInt(1,task.getId());
             if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the task");
+                throw new SQLException("Failed to delete the Task");
             }
             connection.commit();
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
@@ -204,7 +204,7 @@ public class TaskServlet extends HttpServlet2 {
                 stm.setInt(1, taskListId);
                 stm.setString(2, userId);
                 if (!stm.executeQuery().next()) {
-                    throw new ResponseStatusException(404, "Invalid task list id");
+                    throw new ResponseStatusException(404, "Invalid Task list id");
                 }
 
                 stm = connection.prepareStatement("SELECT * FROM task WHERE task.task_list_id = ? ORDER BY position");
@@ -277,7 +277,7 @@ public class TaskServlet extends HttpServlet2 {
             stm.setString(4, newTask.getStatus());
             stm.setInt(5, oldTask.getId());
             if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to update the task");
+                throw new SQLException("Failed to update the Task");
             }
 
             connection.commit();

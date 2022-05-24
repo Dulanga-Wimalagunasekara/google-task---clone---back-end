@@ -35,15 +35,15 @@ class UserDAOTest {
     @ParameterizedTest
     @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
     void existsUser(String arg) throws SQLException {
-        boolean b = UserDAO.existsUser(connection, arg);
+        boolean b = new UserDAO().existsUser(connection, arg);
         assertTrue(b);
     }
 
     @Test
     void saveUser() throws SQLException{
-        UserDTO user = UserDAO.saveUser(connection, userDTO);
+        UserDTO user = new UserDAO().saveUser(connection, userDTO);
         assertEquals(this.userDTO,user);
-        boolean b = UserDAO.existsUser(connection, user.getEmail());
+        boolean b = new UserDAO().existsUser(connection, user.getEmail());
         assertTrue(b);
     }
 
@@ -51,7 +51,7 @@ class UserDAOTest {
     @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
     void getUser(/*Given*/String val)throws SQLException{
         //When
-        UserDTO user = UserDAO.getUser(connection, val);
+        UserDTO user = new UserDAO().getUser(connection, val);
 
         //Then
         assertNotNull(user);
@@ -70,7 +70,7 @@ class UserDAOTest {
         String id ="d6348360-04fa-4931-9e64-99d84fb34531";
 
         //When
-        UserDAO.deleteUser(connection,id);
+        new UserDAO().deleteUser(connection,id);
 
         //Then
         assertThrows(AssertionFailedError.class,() -> existsUser(id));
@@ -79,14 +79,14 @@ class UserDAOTest {
     @Test
     void updateUser() throws SQLException {
         //Given
-        UserDTO user = UserDAO.getUser(connection, "bd3f1de4-b188-43b4-b0ee-1ef205502149");
+        UserDTO user = new UserDAO().getUser(connection, "bd3f1de4-b188-43b4-b0ee-1ef205502149");
         user.setName("Gihara plus");
 
         //When
-        UserDAO.updateUser(connection,user);
+        new UserDAO().updateUser(connection,user);
 
         //Then
-        UserDTO user1 = UserDAO.getUser(connection, "newone222@ijse.lk");
+        UserDTO user1 = new UserDAO().getUser(connection, "newone222@ijse.lk");
         assertEquals(user,user1);
     }
 }

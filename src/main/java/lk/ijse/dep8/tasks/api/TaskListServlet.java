@@ -64,7 +64,7 @@ public class TaskListServlet extends HttpServlet2 {
             stm.setString(1, taskList.getTitle());
             stm.setString(2, userId);
             if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to save the task list");
+                throw new SQLException("Failed to save the Task list");
             }
             ResultSet rst = stm.getGeneratedKeys();
             rst.next();
@@ -102,7 +102,7 @@ public class TaskListServlet extends HttpServlet2 {
                 String user_id = rst.getString("user_id");
                 return new TaskListDTO(id,name,user_id);
             }else {
-                throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND,"Invalid user id or task list id");
+                throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND,"Invalid user id or Task list id");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -116,7 +116,7 @@ public class TaskListServlet extends HttpServlet2 {
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task_list WHERE id=?");
             stm.setInt(1,taskList.getId());
             if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the task");
+                throw new SQLException("Failed to delete the Task");
             }
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (SQLException e) {

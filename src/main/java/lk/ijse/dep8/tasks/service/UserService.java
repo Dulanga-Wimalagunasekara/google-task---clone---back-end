@@ -7,20 +7,18 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-import javax.xml.xpath.XPath;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 public class UserService {
-    private static final Logger logger = Logger.getLogger(UserService.class.getName());
-    public static UserDTO registerUser(Connection connection, Part picture,String appLocation,UserDTO user) throws SQLException {
+    private  final Logger logger = Logger.getLogger(UserService.class.getName());
+    public  UserDTO registerUser(Connection connection, Part picture,String appLocation,UserDTO user) throws SQLException {
         try {
             connection.setAutoCommit(false);
             user.setId(UUID.randomUUID().toString());
@@ -28,7 +26,7 @@ public class UserService {
                 user.setPicture(user.getPicture() + user.getId());
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDTO savedUser = UserDAO.saveUser(connection, user);
+            UserDTO savedUser = new UserDAO().saveUser(connection, user);
             if (picture != null){
                 Path path = Paths.get(appLocation, "uploads");
                 if (Files.notExists(path)) {
@@ -47,11 +45,11 @@ public class UserService {
         }
     }
 
-    public static void updateUser(Connection connection,UserDTO user,Part picture,String appLocation)throws SQLException{
+    public  void updateUser(Connection connection,UserDTO user,Part picture,String appLocation)throws SQLException{
         try {
             connection.setAutoCommit(false);
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDAO.updateUser(connection,user);
+            new UserDAO().updateUser(connection,user);
 
             Path path = Paths.get(appLocation, "uploads");
             Path picturePath = path.resolve(user.getId());
@@ -79,8 +77,8 @@ public class UserService {
 
     }
 
-    public static void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
-        UserDAO.deleteUser(connection,id);
+    public  void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
+        new UserDAO().deleteUser(connection,id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
             try {
@@ -91,11 +89,11 @@ public class UserService {
         }).start();
 
     }
-    public static UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        return UserDAO.getUser(connection,emailOrId);
+    public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
+        return new UserDAO().getUser(connection,emailOrId);
     }
 
-    public static boolean existsUser(Connection con, String emailOrId) throws SQLException {
-        return UserDAO.existsUser(con,emailOrId);
+    public  boolean existsUser(Connection con, String emailOrId) throws SQLException {
+        return new UserDAO().existsUser(con,emailOrId);
     }
 }

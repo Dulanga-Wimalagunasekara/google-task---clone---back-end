@@ -25,7 +25,7 @@ public class DBInitializer implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
 
-        final String[] tables = {"sub_task","task","task_list","user"};
+        final String[] tables = {"sub_task","Task","task_list","user"};
         List<String> tableList = new ArrayList<>();
 
         try (Connection connection = pool.getConnection()) {
