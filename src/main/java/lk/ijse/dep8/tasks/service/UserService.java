@@ -1,5 +1,6 @@
 package lk.ijse.dep8.tasks.service;
 
+import lk.ijse.dep8.tasks.dao.UserDAO;
 import lk.ijse.dep8.tasks.dao.impl.UserDAOImpl;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.entity.User;
@@ -28,9 +29,9 @@ public class UserService {
                 user.setPicture(user.getPicture() + user.getId());
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDAOImpl userDAOImpl = new UserDAOImpl(connection);
+            UserDAO userDAOImpl = new UserDAOImpl(connection);
             User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
-            User savedUser = userDAOImpl.saveUser(userEntity);
+            User savedUser = userDAOImpl.save(userEntity);
             user=new UserDTO(savedUser.getId(),savedUser.getFullName(),savedUser.getEmail(),savedUser.getPassword(),savedUser.getProfilePic());
             if (picture != null){
                 Path path = Paths.get(appLocation, "uploads");
@@ -53,8 +54,8 @@ public class UserService {
     public  void updateUser(Connection connection,UserDTO user,Part picture,String appLocation)throws SQLException{
         try {
             connection.setAutoCommit(false);
-            UserDAOImpl userDAOImpl = new UserDAOImpl(connection);
-            Optional<User> userWrapper = userDAOImpl.findUserById(user.getId());
+            UserDAO userDAOImpl = new UserDAOImpl(connection);
+            Optional<User> userWrapper = userDAOImpl.findById(user.getId());
             User oldUserEntity = userWrapper.get();
 
             oldUserEntity.setPassword(DigestUtils.sha256Hex(user.getPassword()));
@@ -62,7 +63,7 @@ public class UserService {
             oldUserEntity.setFullName(user.getName());
             oldUserEntity.setProfilePic(user.getPicture());
 
-            userDAOImpl.saveUser(oldUserEntity);
+            userDAOImpl.save(oldUserEntity);
 
             Path path = Paths.get(appLocation, "uploads");
             Path picturePath = path.resolve(user.getId());
@@ -91,8 +92,8 @@ public class UserService {
     }
 
     public  void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
-        UserDAOImpl userDAOImpl = new UserDAOImpl(connection);
-        userDAOImpl.deleteUserById(id);
+        UserDAO userDAOImpl = new UserDAOImpl(connection);
+        userDAOImpl.deleteById(id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
             try {
@@ -104,14 +105,14 @@ public class UserService {
 
     }
     public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAOImpl userDAOImpl = new UserDAOImpl(connection);
+        UserDAO userDAOImpl = new UserDAOImpl(connection);
         Optional<User> userWrapper = userDAOImpl.findUserByIdOrEmail(emailOrId);
         return userWrapper.map(user -> new UserDTO(user.getId(),user.getFullName(),user.getEmail(),user.getPassword(),user.getProfilePic()))
                 .orElse(null);
     }
 
     public  boolean existsUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAOImpl userDAOImpl = new UserDAOImpl(connection);
+        UserDAO userDAOImpl = new UserDAOImpl(connection);
         return userDAOImpl.existsUserEmailOrUserId(emailOrId);
     }
 }

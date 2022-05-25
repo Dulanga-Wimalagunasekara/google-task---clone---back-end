@@ -9,7 +9,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class User implements Serializable {
+public class User implements SuperEntity {
     private String id;
     private String email;
     private String password;

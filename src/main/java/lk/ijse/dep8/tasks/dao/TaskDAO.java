@@ -4,16 +4,6 @@ import lk.ijse.dep8.tasks.entity.Task;
 import java.util.List;
 import java.util.Optional;
 
-public interface TaskDAO {
-    Task saveTask(Task task);
+public interface TaskDAO extends SuperDAO<Task,Integer>{
 
-    void deleteTaskById(int taskId);
-
-    Optional<Task> findTaskById(int taskId);
-
-    boolean existsTaskById(int taskId);
-
-    List<Task> findAllTasks(String taskId);
-
-    long countTasks();
 }
