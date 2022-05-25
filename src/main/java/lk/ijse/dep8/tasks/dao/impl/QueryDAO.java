@@ -1,4 +1,6 @@
 package lk.ijse.dep8.tasks.dao.impl;
 
-public interface QueryDAO {
+import lk.ijse.dep8.tasks.dao.SuperDAO;
+
+public interface QueryDAO extends SuperDAO {
 }
