@@ -1,5 +1,6 @@
 package lk.ijse.dep8.tasks.service;
 
+import lk.ijse.dep8.tasks.dao.DAOFactory;
 import lk.ijse.dep8.tasks.dao.UserDAO;
 import lk.ijse.dep8.tasks.dao.impl.UserDAOImpl;
 import lk.ijse.dep8.tasks.dto.UserDTO;
@@ -20,20 +21,21 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class UserService {
-    private  final Logger logger = Logger.getLogger(UserService.class.getName());
-    public  UserDTO registerUser(Connection connection, Part picture,String appLocation,UserDTO user) throws SQLException {
+    private final Logger logger = Logger.getLogger(UserService.class.getName());
+
+    public UserDTO registerUser(Connection connection, Part picture, String appLocation, UserDTO user) throws SQLException {
         try {
             connection.setAutoCommit(false);
             user.setId(UUID.randomUUID().toString());
-            if (picture!=null){
+            if (picture != null) {
                 user.setPicture(user.getPicture() + user.getId());
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDAO userDAOImpl = new UserDAOImpl(connection);
+            UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
             User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
             User savedUser = userDAOImpl.save(userEntity);
-            user=new UserDTO(savedUser.getId(),savedUser.getFullName(),savedUser.getEmail(),savedUser.getPassword(),savedUser.getProfilePic());
-            if (picture != null){
+            user = new UserDTO(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getProfilePic());
+            if (picture != null) {
                 Path path = Paths.get(appLocation, "uploads");
                 if (Files.notExists(path)) {
                     Files.createDirectory(path);
@@ -46,15 +48,15 @@ public class UserService {
         } catch (Throwable t) {
             connection.rollback();
             throw new RuntimeException(t);
-        }finally {
+        } finally {
             connection.setAutoCommit(true);
         }
     }
 
-    public  void updateUser(Connection connection,UserDTO user,Part picture,String appLocation)throws SQLException{
+    public void updateUser(Connection connection, UserDTO user, Part picture, String appLocation) throws SQLException {
         try {
             connection.setAutoCommit(false);
-            UserDAO userDAOImpl = new UserDAOImpl(connection);
+            UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
             Optional<User> userWrapper = userDAOImpl.findById(user.getId());
             User oldUserEntity = userWrapper.get();
 
@@ -85,14 +87,14 @@ public class UserService {
         } catch (SQLException | IOException e) {
             connection.rollback();
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             connection.setAutoCommit(true);
         }
 
     }
 
-    public  void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
-        UserDAO userDAOImpl = new UserDAOImpl(connection);
+    public void deleteUser(Connection connection, String id, String appLocation) throws SQLException {
+        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
         userDAOImpl.deleteById(id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
@@ -104,15 +106,16 @@ public class UserService {
         }).start();
 
     }
-    public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAO userDAOImpl = new UserDAOImpl(connection);
+
+    public UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
+        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
         Optional<User> userWrapper = userDAOImpl.findUserByIdOrEmail(emailOrId);
-        return userWrapper.map(user -> new UserDTO(user.getId(),user.getFullName(),user.getEmail(),user.getPassword(),user.getProfilePic()))
+        return userWrapper.map(user -> new UserDTO(user.getId(), user.getFullName(), user.getEmail(), user.getPassword(), user.getProfilePic()))
                 .orElse(null);
     }
 
-    public  boolean existsUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAO userDAOImpl = new UserDAOImpl(connection);
+    public boolean existsUser(Connection connection, String emailOrId) throws SQLException {
+        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
         return userDAOImpl.existsUserEmailOrUserId(emailOrId);
     }
 }
