@@ -84,7 +84,8 @@ public class UserService {
     }
 
     public  void deleteUser(Connection connection,String id,String appLocation) throws SQLException {
-        new oldUserDAO().deleteUser(connection,id);
+        UserDAO userDAO = new UserDAO(connection);
+        userDAO.deleteUserById(id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
             try {
