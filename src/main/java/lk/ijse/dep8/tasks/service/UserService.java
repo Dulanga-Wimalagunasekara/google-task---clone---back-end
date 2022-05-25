@@ -54,8 +54,16 @@ public class UserService {
     public  void updateUser(Connection connection,UserDTO user,Part picture,String appLocation)throws SQLException{
         try {
             connection.setAutoCommit(false);
-            user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            new oldUserDAO().updateUser(connection,user);
+            UserDAO userDAO = new UserDAO(connection);
+            Optional<User> userWrapper = userDAO.findUserById(user.getId());
+            User oldUserEntity = userWrapper.get();
+
+            oldUserEntity.setPassword(DigestUtils.sha256Hex(user.getPassword()));
+
+            oldUserEntity.setFullName(user.getName());
+            oldUserEntity.setProfilePic(user.getPicture());
+
+            userDAO.saveUser(oldUserEntity);
 
             Path path = Paths.get(appLocation, "uploads");
             Path picturePath = path.resolve(user.getId());
