@@ -91,7 +91,7 @@ public class UserDAO {
         }
     }
 
-    public List<User> findAllUsers(String userId){
+    public List<User> findAllUsers(){
         try {
             Statement stm = connection.createStatement();
             ResultSet rst = stm.executeQuery("SELECT * FROM user");

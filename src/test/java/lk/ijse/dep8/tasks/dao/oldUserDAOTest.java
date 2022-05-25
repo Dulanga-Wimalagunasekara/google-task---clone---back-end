@@ -24,32 +24,33 @@ class oldUserDAOTest {
     void setUp() throws ClassNotFoundException {
         Class.forName("com.mysql.cj.jdbc.Driver");
         try {
-           connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/dep8_tasks", "root", "root");
-           connection.setAutoCommit(false);
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/dep8_tasks", "root", "root");
+            connection.setAutoCommit(false);
             userDTO = new UserDTO(UUID.randomUUID().toString(), "Dulanga", "dulanga11@ijse.lk", "1234", null);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
     }
+
     @ParameterizedTest
-    @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
+    @ValueSource(strings = {"dulanga10@ijse.lk", "gihara111@ijse.lk", "c7d35a06-2689-40ff-ba9b-ef90068df29f"})
     void existsUser(String arg) throws SQLException {
         boolean b = new oldUserDAO().existsUser(connection, arg);
         assertTrue(b);
     }
 
     @Test
-    void saveUser() throws SQLException{
+    void saveUser() throws SQLException {
         UserDTO user = new oldUserDAO().saveUser(connection, userDTO);
-        assertEquals(this.userDTO,user);
+        assertEquals(this.userDTO, user);
         boolean b = new oldUserDAO().existsUser(connection, user.getEmail());
         assertTrue(b);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"dulanga10@ijse.lk","gihara111@ijse.lk","c7d35a06-2689-40ff-ba9b-ef90068df29f"})
-    void getUser(/*Given*/String val)throws SQLException{
+    @ValueSource(strings = {"dulanga10@ijse.lk", "gihara111@ijse.lk", "c7d35a06-2689-40ff-ba9b-ef90068df29f"})
+    void getUser(/*Given*/String val) throws SQLException {
         //When
         UserDTO user = new oldUserDAO().getUser(connection, val);
 
@@ -67,13 +68,13 @@ class oldUserDAOTest {
     @Test
     void deleteUser() throws SQLException {
         //Given
-        String id ="d6348360-04fa-4931-9e64-99d84fb34531";
+        String id = "d6348360-04fa-4931-9e64-99d84fb34531";
 
         //When
-        new oldUserDAO().deleteUser(connection,id);
+        new oldUserDAO().deleteUser(connection, id);
 
         //Then
-        assertThrows(AssertionFailedError.class,() -> existsUser(id));
+        assertThrows(AssertionFailedError.class, () -> existsUser(id));
     }
 
     @Test
@@ -83,10 +84,10 @@ class oldUserDAOTest {
         user.setName("Gihara plus");
 
         //When
-        new oldUserDAO().updateUser(connection,user);
+        new oldUserDAO().updateUser(connection, user);
 
         //Then
         UserDTO user1 = new oldUserDAO().getUser(connection, "newone222@ijse.lk");
-        assertEquals(user,user1);
+        assertEquals(user, user1);
     }
 }
