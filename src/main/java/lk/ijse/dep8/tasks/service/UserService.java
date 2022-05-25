@@ -31,7 +31,7 @@ public class UserService {
                 user.setPicture(user.getPicture() + user.getId());
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
-            UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
+            UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
             User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
             User savedUser = userDAOImpl.save(userEntity);
             user = new UserDTO(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getProfilePic());
@@ -56,7 +56,7 @@ public class UserService {
     public void updateUser(Connection connection, UserDTO user, Part picture, String appLocation) throws SQLException {
         try {
             connection.setAutoCommit(false);
-            UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
+            UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
             Optional<User> userWrapper = userDAOImpl.findById(user.getId());
             User oldUserEntity = userWrapper.get();
 
@@ -94,7 +94,7 @@ public class UserService {
     }
 
     public void deleteUser(Connection connection, String id, String appLocation) throws SQLException {
-        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
+        UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);;
         userDAOImpl.deleteById(id);
         new Thread(() -> {
             Path filePath = Paths.get(appLocation, "uploads", id);
@@ -108,14 +108,14 @@ public class UserService {
     }
 
     public UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
+        UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
         Optional<User> userWrapper = userDAOImpl.findUserByIdOrEmail(emailOrId);
         return userWrapper.map(user -> new UserDTO(user.getId(), user.getFullName(), user.getEmail(), user.getPassword(), user.getProfilePic()))
                 .orElse(null);
     }
 
     public boolean existsUser(Connection connection, String emailOrId) throws SQLException {
-        UserDAO userDAOImpl = DAOFactory.getInstance().getUserDAO(connection);
+        UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
         return userDAOImpl.existsUserEmailOrUserId(emailOrId);
     }
 }

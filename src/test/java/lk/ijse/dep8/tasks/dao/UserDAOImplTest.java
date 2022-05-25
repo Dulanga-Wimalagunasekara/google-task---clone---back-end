@@ -61,7 +61,7 @@ class UserDAOImplTest {
     void saveUser(User givenUser) {
         System.out.println("saveUser");
         // when
-        User savedUser = userDAOImpl.saveUser(givenUser);
+        User savedUser = userDAOImpl.save(givenUser);
         //then
         assertEquals(givenUser, savedUser);
     }
@@ -71,7 +71,7 @@ class UserDAOImplTest {
     @ValueSource(strings = {"U0011","U0012","U46r4738"})
         void existsUserById(String userId) {
         System.out.println("existUser");
-        boolean result = userDAOImpl.existsUserById(userId);
+        boolean result = userDAOImpl.existsById(userId);
         if (userId.equals("U46r4738")){
             assertFalse(result);
         }else {
@@ -84,7 +84,7 @@ class UserDAOImplTest {
     @ValueSource(strings = {"U0011","U0012","U100"})
     void findUserById(String userId) {
         System.out.println("findUser");
-        Optional<User> userById = new UserDAOImpl(connection).findUserById(userId);
+        Optional<User> userById = new UserDAOImpl(connection).findById(userId);
         if (userId.equals("U100")){
             assertFalse(userById.isPresent());
         }else {
@@ -96,7 +96,7 @@ class UserDAOImplTest {
     @Test
     void findAllUsers() {
         System.out.println("findAllUsers");
-        List<User> allUsers = userDAOImpl.findAllUsers();
+        List<User> allUsers = userDAOImpl.findAll();
         assertTrue(allUsers.size()>=5);
     }
 
@@ -106,11 +106,11 @@ class UserDAOImplTest {
     void deleteUserById(String givenUserId) {
         System.out.println("deleteUser");
         if (givenUserId.equals("U100")){
-            assertThrows(DataAccessException.class,()-> userDAOImpl.deleteUserById(givenUserId));
+            assertThrows(DataAccessException.class,()-> userDAOImpl.deleteById(givenUserId));
         }else {
-            userDAOImpl.deleteUserById(givenUserId);
+            userDAOImpl.deleteById(givenUserId);
         }
-        assertFalse(userDAOImpl.existsUserById(givenUserId));
+        assertFalse(userDAOImpl.existsById(givenUserId));
 
     }
 
@@ -118,6 +118,6 @@ class UserDAOImplTest {
     @Test
     void countUsers() {
         System.out.println("countUser");
-        assertTrue(userDAOImpl.countUsers()>=5);
+        assertTrue(userDAOImpl.count()>=5);
     }
 }
