@@ -1,4 +1,4 @@
-package lk.ijse.dep8.tasks.dao;
+package lk.ijse.dep8.tasks.dao.impl;
 
 import lk.ijse.dep8.tasks.dto.UserDTO;
 
@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public class oldUserDAO {
+public class oldUserDAOImpl {
     public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException{
         PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE email=? OR id=?");
         stm.setString(1,emailOrId);

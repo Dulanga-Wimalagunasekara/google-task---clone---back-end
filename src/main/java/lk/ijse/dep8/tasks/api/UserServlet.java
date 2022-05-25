@@ -2,7 +2,6 @@ package lk.ijse.dep8.tasks.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-import lk.ijse.dep8.tasks.dao.oldUserDAO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.UserService;
 import lk.ijse.dep8.tasks.util.HttpServlet2;

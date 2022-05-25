@@ -1,5 +1,6 @@
 package lk.ijse.dep8.tasks.dao;
 
+import lk.ijse.dep8.tasks.dao.impl.oldUserDAOImpl;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class oldUserDAOTest {
+class oldUserDAOImplImplTest {
     private Connection connection;
     UserDTO userDTO;
 
@@ -36,15 +37,15 @@ class oldUserDAOTest {
     @ParameterizedTest
     @ValueSource(strings = {"dulanga10@ijse.lk", "gihara111@ijse.lk", "c7d35a06-2689-40ff-ba9b-ef90068df29f"})
     void existsUser(String arg) throws SQLException {
-        boolean b = new oldUserDAO().existsUser(connection, arg);
+        boolean b = new oldUserDAOImpl().existsUser(connection, arg);
         assertTrue(b);
     }
 
     @Test
     void saveUser() throws SQLException {
-        UserDTO user = new oldUserDAO().saveUser(connection, userDTO);
+        UserDTO user = new oldUserDAOImpl().saveUser(connection, userDTO);
         assertEquals(this.userDTO, user);
-        boolean b = new oldUserDAO().existsUser(connection, user.getEmail());
+        boolean b = new oldUserDAOImpl().existsUser(connection, user.getEmail());
         assertTrue(b);
     }
 
@@ -52,7 +53,7 @@ class oldUserDAOTest {
     @ValueSource(strings = {"dulanga10@ijse.lk", "gihara111@ijse.lk", "c7d35a06-2689-40ff-ba9b-ef90068df29f"})
     void getUser(/*Given*/String val) throws SQLException {
         //When
-        UserDTO user = new oldUserDAO().getUser(connection, val);
+        UserDTO user = new oldUserDAOImpl().getUser(connection, val);
 
         //Then
         assertNotNull(user);
@@ -71,7 +72,7 @@ class oldUserDAOTest {
         String id = "d6348360-04fa-4931-9e64-99d84fb34531";
 
         //When
-        new oldUserDAO().deleteUser(connection, id);
+        new oldUserDAOImpl().deleteUser(connection, id);
 
         //Then
         assertThrows(AssertionFailedError.class, () -> existsUser(id));
@@ -80,14 +81,14 @@ class oldUserDAOTest {
     @Test
     void updateUser() throws SQLException {
         //Given
-        UserDTO user = new oldUserDAO().getUser(connection, "bd3f1de4-b188-43b4-b0ee-1ef205502149");
+        UserDTO user = new oldUserDAOImpl().getUser(connection, "bd3f1de4-b188-43b4-b0ee-1ef205502149");
         user.setName("Gihara plus");
 
         //When
-        new oldUserDAO().updateUser(connection, user);
+        new oldUserDAOImpl().updateUser(connection, user);
 
         //Then
-        UserDTO user1 = new oldUserDAO().getUser(connection, "newone222@ijse.lk");
+        UserDTO user1 = new oldUserDAOImpl().getUser(connection, "newone222@ijse.lk");
         assertEquals(user, user1);
     }
 }
