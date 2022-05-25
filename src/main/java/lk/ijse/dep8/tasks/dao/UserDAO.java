@@ -91,6 +91,19 @@ public class UserDAO {
         }
     }
 
+    public boolean existsUserEmailOrUserId(String emailOrId){
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT id FROM user WHERE email=? OR id=?");
+            stm.setString(1,emailOrId);
+            stm.setString(2,emailOrId);
+            return stm.executeQuery().next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
     public List<User> findAllUsers(){
         try {
             Statement stm = connection.createStatement();
