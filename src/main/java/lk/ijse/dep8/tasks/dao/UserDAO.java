@@ -80,6 +80,26 @@ public class UserDAO {
             throw new RuntimeException(e);
         }
     }
+    public Optional<User> findUserByIdOrEmail(String userIdOrEmail){
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT * FROM user WHERE id=? OR email=?");
+            stm.setString(1,userIdOrEmail);
+            stm.setString(2,userIdOrEmail);
+            ResultSet rst = stm.executeQuery();
+            if (rst.next()){
+                return Optional.of(new User(rst.getString("id"),
+                        rst.getString("email"),
+                        rst.getString("password"),
+                        rst.getString("full_name"),
+                        rst.getString("profile_pic")));
+            }else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public boolean existsUserById(String userId){
         try {

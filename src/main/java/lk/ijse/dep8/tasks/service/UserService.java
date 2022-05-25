@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -95,7 +96,10 @@ public class UserService {
 
     }
     public  UserDTO getUser(Connection connection, String emailOrId) throws SQLException {
-        return new oldUserDAO().getUser(connection,emailOrId);
+        UserDAO userDAO = new UserDAO(connection);
+        Optional<User> userWrapper = userDAO.findUserByIdOrEmail(emailOrId);
+        return userWrapper.map(user -> new UserDTO(user.getId(),user.getFullName(),user.getEmail(),user.getPassword(),user.getProfilePic()))
+                .orElse(null);
     }
 
     public  boolean existsUser(Connection connection, String emailOrId) throws SQLException {
