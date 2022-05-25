@@ -2,7 +2,6 @@ package lk.ijse.dep8.tasks.dao;
 
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
 import lk.ijse.dep8.tasks.entity.Task;
-import lk.ijse.dep8.tasks.entity.User;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public class TaskDAO {
                 stm.setString(4,task.getStatus().toString());
                 stm.setInt(5,task.getTaskListId());
                 if (stm.executeUpdate()!=1){
-                    throw new SQLException("Failed to save the user");
+                    throw new SQLException("Failed to save the Task");
                 }
             }else {
                 PreparedStatement stm = connection.prepareStatement("UPDATE task SET title=?, details =?, position=?, status=?, task_list_id=? WHERE id=?");
@@ -37,7 +36,7 @@ public class TaskDAO {
                 stm.setInt(5,task.getTaskListId());
                 stm.setInt(6,task.getId());
                 if (stm.executeUpdate()!=1){
-                    throw new SQLException("Failed to update the user");
+                    throw new SQLException("Failed to update the Task");
                 }
             }
             return task;
@@ -49,12 +48,12 @@ public class TaskDAO {
     public void deleteTaskById(int taskId){
         try {
             if (!existsTaskById(taskId)){
-                throw new DataAccessException("No user Found!");
+                throw new DataAccessException("No Task Found!");
             }
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
             stm.setInt(1,taskId);
             if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the user");
+                throw new SQLException("Failed to delete the Task");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

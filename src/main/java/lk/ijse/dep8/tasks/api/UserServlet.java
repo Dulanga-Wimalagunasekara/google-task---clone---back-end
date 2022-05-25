@@ -94,7 +94,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         try {
-            if (new oldUserDAO().existsUser(connection,email)) {
+            if (new UserService().existsUser(connection,email)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT, "User already exists");
             }
             String pictureUrl=null;
