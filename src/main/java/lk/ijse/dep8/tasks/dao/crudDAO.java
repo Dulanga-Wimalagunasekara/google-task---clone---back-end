@@ -1,6 +1,5 @@
 package lk.ijse.dep8.tasks.dao;
 
-import lk.ijse.dep8.tasks.dao.impl.SuperDAO;
 import lk.ijse.dep8.tasks.entity.SuperEntity;
 
 import java.io.Serializable;

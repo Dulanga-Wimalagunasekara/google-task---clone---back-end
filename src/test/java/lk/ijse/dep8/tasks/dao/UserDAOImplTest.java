@@ -1,7 +1,7 @@
 package lk.ijse.dep8.tasks.dao;
 
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
-import lk.ijse.dep8.tasks.dao.impl.UserDAOImpl;
+import lk.ijse.dep8.tasks.dao.custome.impl.UserDAOImpl;
 import lk.ijse.dep8.tasks.entity.User;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -95,7 +95,6 @@ class UserDAOImplTest {
     @Order(4)
     @Test
     void findAllUsers() {
-        System.out.println("findAllUsers");
         List<User> allUsers = userDAOImpl.findAll();
         assertTrue(allUsers.size()>=5);
     }

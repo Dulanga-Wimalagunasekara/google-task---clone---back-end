@@ -1,6 +1,6 @@
-package lk.ijse.dep8.tasks.dao.impl;
+package lk.ijse.dep8.tasks.dao.custome.impl;
 
-import lk.ijse.dep8.tasks.dao.UserDAO;
+import lk.ijse.dep8.tasks.dao.custome.UserDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
 import lk.ijse.dep8.tasks.entity.User;
 
@@ -126,7 +126,6 @@ public class UserDAOImpl implements UserDAO {
             throw new RuntimeException(e);
         }
     }
-
 
     @Override
     public List<User> findAll() {

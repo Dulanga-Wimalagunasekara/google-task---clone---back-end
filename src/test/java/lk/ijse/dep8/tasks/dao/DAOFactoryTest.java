@@ -1,18 +1,18 @@
 package lk.ijse.dep8.tasks.dao;
 
-import lk.ijse.dep8.tasks.dao.impl.QueryDAO;
+import lk.ijse.dep8.tasks.dao.custome.QueryDAO;
+import lk.ijse.dep8.tasks.dao.custome.TaskDAO;
+import lk.ijse.dep8.tasks.dao.custome.TaskListDAO;
+import lk.ijse.dep8.tasks.dao.custome.UserDAO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
-
 import static org.mockito.Mockito.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class DAOFactoryTest {
-
     @BeforeEach
     void setUp() {
     }
@@ -33,7 +33,6 @@ class DAOFactoryTest {
         assertNotNull(user);
         assertNotNull(task);
         assertNotNull(query);
-
     }
 
     @Test

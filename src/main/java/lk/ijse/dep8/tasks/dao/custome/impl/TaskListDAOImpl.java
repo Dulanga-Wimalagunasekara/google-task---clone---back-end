@@ -1,14 +1,12 @@
-package lk.ijse.dep8.tasks.dao.impl;
+package lk.ijse.dep8.tasks.dao.custome.impl;
 
-import lk.ijse.dep8.tasks.dao.TaskListDAO;
+import lk.ijse.dep8.tasks.dao.custome.TaskListDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
-import lk.ijse.dep8.tasks.entity.Task;
 import lk.ijse.dep8.tasks.entity.TaskList;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class TaskListDAOImpl implements TaskListDAO {

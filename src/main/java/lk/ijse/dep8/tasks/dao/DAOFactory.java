@@ -1,5 +1,9 @@
 package lk.ijse.dep8.tasks.dao;
 
+import lk.ijse.dep8.tasks.dao.custome.impl.QueryDAOimpl;
+import lk.ijse.dep8.tasks.dao.custome.impl.TaskDAOImpl;
+import lk.ijse.dep8.tasks.dao.custome.impl.TaskListDAOImpl;
+import lk.ijse.dep8.tasks.dao.custome.impl.UserDAOImpl;
 import lk.ijse.dep8.tasks.dao.impl.*;
 
 import java.sql.Connection;
@@ -28,22 +32,6 @@ public class DAOFactory {
     public static DAOFactory getInstance(){
         return (daoFactory==null) ? (daoFactory=new DAOFactory()):daoFactory;
     }
-//
-//    public UserDAO getUserDAO(Connection connection){
-//        return new UserDAOImpl(connection);
-//    }
-//
-//    public TaskListDAO getTaskListDAO(Connection connection){
-//        return new TaskListDAOImpl(connection);
-//    }
-//
-//    public TaskDAO getTaskDAO(Connection connection){
-//        return new TaskDAOImpl(connection);
-//    }
-//
-//    public QueryDAO getQueryDAO(Connection connection){
-//        return new QueryDAOimpl(connection);
-//    }
 
     public enum DAOTypes{
         USER,TASK_LIST,TASK,QUERY
