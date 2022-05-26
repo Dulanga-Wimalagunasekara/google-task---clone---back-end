@@ -7,7 +7,7 @@ import javax.servlet.http.Part;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public interface UserService extends SuperService {
+public interface UserService extends SuperService{
     boolean existsUser(String emailOrId);
 
     UserDTO registerUser(Part picture, String appLocation, UserDTO user);

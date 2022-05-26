@@ -6,6 +6,7 @@ import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.entity.User;
 import lk.ijse.dep8.tasks.service.custome.UserService;
 import lk.ijse.dep8.tasks.service.exception.FailedExecutionException;
+import lk.ijse.dep8.tasks.util.EntityDTOMapper;
 import lk.ijse.dep8.tasks.util.ExecutionContext;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -40,9 +41,11 @@ public class UserServiceImpl implements UserService {
             }
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
             UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
-            User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
+            User userEntity = EntityDTOMapper.getUser(user);
+//            User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
             User savedUser = userDAOImpl.save(userEntity);
-            user = new UserDTO(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getProfilePic());
+            user = EntityDTOMapper.getUserDTO(savedUser);
+//            user = new UserDTO(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getProfilePic());
             if (picture != null) {
                 Path path = Paths.get(appLocation, "uploads");
                 if (Files.notExists(path)) {
@@ -119,11 +122,12 @@ public class UserServiceImpl implements UserService {
     public UserDTO getUser(String emailOrId) {
         UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
         Optional<User> userWrapper = userDAOImpl.findUserByIdOrEmail(emailOrId);
-        return userWrapper.map(user -> new UserDTO(user.getId(), user.getFullName(), user.getEmail(), user.getPassword(), user.getProfilePic()))
-                .orElse(null);
+        return EntityDTOMapper.getUserDTO(userWrapper.orElse(null));
+//        return userWrapper.map(user -> new UserDTO(user.getId(), user.getFullName(), user.getEmail(), user.getPassword(), user.getProfilePic()))
+//                .orElse(null);
     }
 
-    public boolean existsUser(String emailOrId) {
+    public boolean existsUser(String emailOrId){
         UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
         return userDAOImpl.existsUserEmailOrUserId(emailOrId);
     }
