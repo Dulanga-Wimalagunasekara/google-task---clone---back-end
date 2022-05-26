@@ -28,8 +28,8 @@ class ServiceFactoryTest {
 
     @Test
     void getService() {
-        SuperService task = ServiceFactory.getInstance().getService(connection, ServiceFactory.ServiceTypes.TASK);
-        SuperService user = ServiceFactory.getInstance().getService(connection, ServiceFactory.ServiceTypes.USER);
+        SuperService task = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+        SuperService user = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
         assertTrue(task instanceof TaskServiceImpl);
         assertTrue(user instanceof UserServiceImpl);
     }
