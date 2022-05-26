@@ -3,6 +3,9 @@ package lk.ijse.dep8.tasks.api;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import lk.ijse.dep8.tasks.dto.UserDTO;
+import lk.ijse.dep8.tasks.service.ServiceFactory;
+import lk.ijse.dep8.tasks.service.SuperService;
+import lk.ijse.dep8.tasks.service.custome.UserService;
 import lk.ijse.dep8.tasks.service.custome.impl.UserServiceImpl;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
@@ -13,6 +16,7 @@ import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,24 +28,22 @@ import java.util.logging.Logger;
 public class UserServlet extends HttpServlet2 {
 
     private final Logger logger = Logger.getLogger(UserServlet.class.getName());
-    @Resource(name = "java:comp/env/jdbc/pool")
-    private volatile DataSource pool;
 
     private UserDTO getUser(HttpServletRequest request) {
         if (!(request.getPathInfo() != null &&
                 (request.getPathInfo().replaceAll("/", "").length() == 36))) {
             throw new ResponseStatusException(404, "Not found");
         }
-
         String userId = request.getPathInfo().replaceAll("/", "");
-        try (Connection connection = pool.getConnection()) {
-            if (!new UserServiceImpl(connection).existsUser(userId)) {
+        try{
+            UserService userService = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
+            if (!userService.existsUser(userId)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid User");
             } else {
-                return new UserServiceImpl(connection).getUser(userId);
+                return userService.getUser(userId);
             }
 
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             throw new ResponseStatusException(500, "Failed to fetch the user info", e);
         }
     }
@@ -87,13 +89,8 @@ public class UserServlet extends HttpServlet2 {
 
         Connection connection = null;
         try {
-            connection = pool.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            if (new UserServiceImpl(connection).existsUser(email)) {
+            UserService UserService = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
+            if(UserService.existsUser(email)){
                 throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT, "User already exists");
             }
             String pictureUrl=null;
@@ -102,7 +99,7 @@ public class UserServlet extends HttpServlet2 {
                         + request.getContextPath()+"/uploads/";
             }
             UserDTO user = new UserDTO(null, name, email, password, pictureUrl);
-            user = new UserServiceImpl(connection).registerUser(picture,getServletContext().getRealPath("/"), user);
+            user = UserService.registerUser(picture,getServletContext().getRealPath("/"), user);
             response.setStatus(HttpServletResponse.SC_CREATED);
             response.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
@@ -117,11 +114,10 @@ public class UserServlet extends HttpServlet2 {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         UserDTO user = getUser(req);
-        try (Connection connection = pool.getConnection()) {
-            new UserServiceImpl(connection).deleteUser(user.getId(),getServletContext().getRealPath("/"));
+        try{
+            UserService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
+            service.deleteUser(user.getId(),getServletContext().getRealPath("/"));
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (ResponseStatusException e) {
-            throw e;
         } catch (Throwable e) {
             throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete the user", e);
         }
@@ -147,7 +143,7 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid picture");
         }
 
-        try(Connection connection = pool.getConnection()) {
+        try{
             String pictureUrl = null;
             if (picture != null) {
                 pictureUrl = request.getScheme() + "://" + request.getServerName() + ":"
@@ -155,7 +151,8 @@ public class UserServlet extends HttpServlet2 {
                 pictureUrl += "/uploads/" + user.getId();
             }
             UserDTO userDTO = new UserDTO(user.getId(), name, user.getEmail(), password, pictureUrl);
-            new UserServiceImpl(connection).updateUser(userDTO,picture,getServletContext().getRealPath("/"));
+            UserService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
+            service.updateUser(userDTO,picture,getServletContext().getRealPath("/"));
             resp.setStatus(204);
         } catch (ResponseStatusException e) {
             throw e;

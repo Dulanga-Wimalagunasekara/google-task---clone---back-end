@@ -15,12 +15,12 @@ public class ServiceFactory {
         return (serviceFactory==null)? (serviceFactory=new ServiceFactory()) :serviceFactory;
     }
 
-    public <T extends SuperService> T getService(Connection connection, ServiceTypes serviceType){
+    public <T extends SuperService> T getService(ServiceTypes serviceType){
         switch (serviceType){
             case USER:
-                return (T) new UserServiceImpl(connection);
+                return (T) new UserServiceImpl();
             case TASK:
-                return (T) new TaskServiceImpl(connection);
+                return (T) new TaskServiceImpl();
             default:
                 return null;
         }

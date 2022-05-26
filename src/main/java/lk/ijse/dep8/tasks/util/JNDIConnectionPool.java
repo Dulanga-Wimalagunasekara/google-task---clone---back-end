@@ -10,7 +10,6 @@ public class JNDIConnectionPool {
     private static JNDIConnectionPool pool;
 
     private JNDIConnectionPool(){
-
     }
 
     public static JNDIConnectionPool getInstance(){
