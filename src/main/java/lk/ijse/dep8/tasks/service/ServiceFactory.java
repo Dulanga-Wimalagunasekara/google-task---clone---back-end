@@ -18,9 +18,9 @@ public class ServiceFactory {
     public <T extends SuperService> T getService(Connection connection, ServiceTypes serviceType){
         switch (serviceType){
             case USER:
-                return (T) new UserServiceImpl();
+                return (T) new UserServiceImpl(connection);
             case TASK:
-                return (T) new TaskServiceImpl();
+                return (T) new TaskServiceImpl(connection);
             default:
                 return null;
         }
