@@ -3,7 +3,7 @@ package lk.ijse.dep8.tasks.api;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import lk.ijse.dep8.tasks.dto.UserDTO;
-import lk.ijse.dep8.tasks.service.UserService;
+import lk.ijse.dep8.tasks.service.custome.impl.UserServiceImpl;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -35,10 +35,10 @@ public class UserServlet extends HttpServlet2 {
 
         String userId = request.getPathInfo().replaceAll("/", "");
         try (Connection connection = pool.getConnection()) {
-            if (!new UserService().existsUser(connection,userId)) {
+            if (!new UserServiceImpl().existsUser(connection,userId)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid User");
             } else {
-                return new UserService().getUser(connection, userId);
+                return new UserServiceImpl().getUser(connection, userId);
             }
 
         } catch (SQLException e) {
@@ -93,7 +93,7 @@ public class UserServlet extends HttpServlet2 {
         }
 
         try {
-            if (new UserService().existsUser(connection,email)) {
+            if (new UserServiceImpl().existsUser(connection,email)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT, "User already exists");
             }
             String pictureUrl=null;
@@ -102,7 +102,7 @@ public class UserServlet extends HttpServlet2 {
                         + request.getContextPath()+"/uploads/";
             }
             UserDTO user = new UserDTO(null, name, email, password, pictureUrl);
-            user = new UserService().registerUser(connection, picture,getServletContext().getRealPath("/"), user);
+            user = new UserServiceImpl().registerUser(connection, picture,getServletContext().getRealPath("/"), user);
             response.setStatus(HttpServletResponse.SC_CREATED);
             response.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
@@ -118,7 +118,7 @@ public class UserServlet extends HttpServlet2 {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         UserDTO user = getUser(req);
         try (Connection connection = pool.getConnection()) {
-            new UserService().deleteUser(connection,user.getId(),getServletContext().getRealPath("/"));
+            new UserServiceImpl().deleteUser(connection,user.getId(),getServletContext().getRealPath("/"));
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (ResponseStatusException e) {
             throw e;
@@ -155,7 +155,7 @@ public class UserServlet extends HttpServlet2 {
                 pictureUrl += "/uploads/" + user.getId();
             }
             UserDTO userDTO = new UserDTO(user.getId(), name, user.getEmail(), password, pictureUrl);
-            new UserService().updateUser(connection,userDTO,picture,getServletContext().getRealPath("/"));
+            new UserServiceImpl().updateUser(connection,userDTO,picture,getServletContext().getRealPath("/"));
             resp.setStatus(204);
         } catch (ResponseStatusException e) {
             throw e;

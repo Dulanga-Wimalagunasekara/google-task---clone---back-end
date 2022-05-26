@@ -1,8 +1,7 @@
-package lk.ijse.dep8.tasks.service;
+package lk.ijse.dep8.tasks.service.custome.impl;
 
 import lk.ijse.dep8.tasks.dao.DAOFactory;
-import lk.ijse.dep8.tasks.dao.UserDAO;
-import lk.ijse.dep8.tasks.dao.impl.UserDAOImpl;
+import lk.ijse.dep8.tasks.dao.custome.UserDAO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.entity.User;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
@@ -20,8 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class UserService {
-    private final Logger logger = Logger.getLogger(UserService.class.getName());
+public class UserServiceImpl {
+    private final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
 
     public UserDTO registerUser(Connection connection, Part picture, String appLocation, UserDTO user) throws SQLException {
         try {
