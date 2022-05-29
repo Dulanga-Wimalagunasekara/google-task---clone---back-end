@@ -67,7 +67,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Optional<List<TaskDTO>> getTask(int taskListId, String userId) {
+    public Optional<List<TaskDTO>> getAllTasks(int taskListId, String userId) {
         try (Connection connection = dataSource.getConnection()) {
             TaskListDAO taskListDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
             if (!taskListDAOImpl.existTaskListByIdAndUserId(taskListId, userId)) {
@@ -90,12 +90,26 @@ public class TaskServiceImpl implements TaskService {
             throw new FailedExecutionException("Failed to get the Task", e);
         }
     }
-
     @Override
-    public void deleteTask(TaskDTO task) {
+    public Optional<TaskDTO> getSpecificTask(int taskListId, String userId,int taskId) {
         Connection connection=null;
         try {
             connection = dataSource.getConnection();
+            QueryDAO queryDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.QUERY);
+            Task task = (Task) queryDAO.getTask(taskId, taskListId, userId);
+            return Optional.of(EntityDTOMapper.getTaskDTO(task));
+        } catch (SQLException e) {
+            throw new FailedExecutionException("Failed to delete the task",e);
+        }
+    }
+
+    @Override
+    public void deleteTask(String userId,int taskListId,int taskId) {
+        Connection connection=null;
+        try {
+            connection = dataSource.getConnection();
+            QueryDAO queryDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.QUERY);
+            Task task = (Task) queryDAO.getTask(taskId, taskListId, userId);
             connection.setAutoCommit(false);
             pushUp(connection,task.getPosition(),task.getTaskListId());
             TaskDAO taskDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);

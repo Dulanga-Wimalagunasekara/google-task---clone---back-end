@@ -88,10 +88,19 @@ public class TaskServlet extends HttpServlet2 {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        TaskDTO task = getTaskList(req);
+        String pattern = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/(\\d+)/?$";
+        if (!req.getPathInfo().matches(pattern)) {
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                    String.format("Invalid end point for %s request", req.getMethod()));
+        }
+        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
+        matcher.find();
+        String userId = matcher.group(1);
+        int taskListId = Integer.parseInt(matcher.group(2));
+        int taskId = Integer.parseInt(matcher.group(3));
         try {
             TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
-            service.deleteTask(task);
+            service.deleteTask(userId,taskListId,taskId);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
@@ -105,10 +114,9 @@ public class TaskServlet extends HttpServlet2 {
         if (matcher.find()) {
             String userId = matcher.group(1);
             int taskListId = Integer.parseInt(matcher.group(2));
-
             try {
                 TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
-                Optional<List<TaskDTO>> tasks = service.getTask(taskListId, userId);
+                Optional<List<TaskDTO>> tasks = service.getAllTasks(taskListId, userId);
                 if (tasks.isPresent()) {
                     resp.setContentType("application/json");
                     Jsonb jsonb = JsonbBuilder.create();
@@ -127,10 +135,25 @@ public class TaskServlet extends HttpServlet2 {
             }
 
         } else {
-            TaskDTO task = getTaskList(req);
+            String pattern1 = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/(\\d+)/?$";
+            if (!req.getPathInfo().matches(pattern1)) {
+                throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                        String.format("Invalid end point for %s request", req.getMethod()));
+            }
+            Matcher matcher1 = Pattern.compile(pattern1).matcher(req.getPathInfo());
+            matcher1.find();
+            String userId = matcher1.group(1);
+            int taskListId = Integer.parseInt(matcher1.group(2));
+            int taskId = Integer.parseInt(matcher1.group(3));
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            Optional<TaskDTO> taskDTO = service.getSpecificTask(taskListId, userId, taskId);
             resp.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
-            jsonb.toJson(task, resp.getWriter());
+            if (taskDTO.isPresent()){
+                jsonb.toJson(taskDTO.get(), resp.getWriter());
+            }else {
+                resp.getWriter().println("Empty");
+            }
         }
     }
 

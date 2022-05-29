@@ -126,7 +126,6 @@ public class TaskListDAOImpl implements TaskListDAO {
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
             stm.setInt(1, taskListId);
             stm.setString(2, userId);
-
             return stm.executeQuery().next();
 
         } catch (SQLException e) {

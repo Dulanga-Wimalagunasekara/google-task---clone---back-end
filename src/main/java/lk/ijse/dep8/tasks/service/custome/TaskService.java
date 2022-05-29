@@ -2,8 +2,10 @@ package lk.ijse.dep8.tasks.service.custome;
 
 import lk.ijse.dep8.tasks.dto.TaskDTO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
+import lk.ijse.dep8.tasks.entity.Task;
 import lk.ijse.dep8.tasks.service.SuperService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -15,9 +17,10 @@ public interface TaskService extends SuperService {
 
     TaskDTO saveTask(int taskListId, String userId, TaskDTO task);
 
-    Optional<List<TaskDTO>> getTask(int taskListId, String userId);
+    Optional<List<TaskDTO>> getAllTasks(int taskListId, String userId);
+    Optional<TaskDTO> getSpecificTask(int taskListId, String userId,int taskId);
 
-    void deleteTask(TaskDTO id);
+    void deleteTask(String userId,int taskListId,int taskId);
 
     void updateTask(String userId, int taskListId, int taskId,TaskDTO newTask);
     /*==================================================================================*/
@@ -31,5 +34,4 @@ public interface TaskService extends SuperService {
     void pushUp(Connection connection, int pos, int taskListId) throws SQLException;
 
     void pushDown(Connection connection, int pos, int taskListId) throws SQLException;
-
 }
