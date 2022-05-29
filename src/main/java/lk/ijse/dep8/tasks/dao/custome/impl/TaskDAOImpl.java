@@ -155,4 +155,22 @@ public class TaskDAOImpl implements TaskDAO {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void pushUp(Connection connection, int pos, int taskListId) throws SQLException {
+        PreparedStatement pstm = connection.
+                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
+        pstm.setInt(1, pos);
+        pstm.setInt(2, taskListId);
+        pstm.executeUpdate();
+    }
+
+    @Override
+    public void pushDown(Connection connection, int pos, int taskListId) throws SQLException {
+        PreparedStatement pstm = connection.
+                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
+        pstm.setInt(1, pos);
+        pstm.setInt(2, taskListId);
+        pstm.executeUpdate();
+    }
 }

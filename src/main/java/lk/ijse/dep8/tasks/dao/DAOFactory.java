@@ -1,6 +1,6 @@
 package lk.ijse.dep8.tasks.dao;
 
-import lk.ijse.dep8.tasks.dao.custome.impl.QueryDAOimpl;
+import lk.ijse.dep8.tasks.dao.custome.impl.QueryDAOImpl;
 import lk.ijse.dep8.tasks.dao.custome.impl.TaskDAOImpl;
 import lk.ijse.dep8.tasks.dao.custome.impl.TaskListDAOImpl;
 import lk.ijse.dep8.tasks.dao.custome.impl.UserDAOImpl;
@@ -23,7 +23,7 @@ public class DAOFactory {
             case TASK:
                 return (T) new TaskDAOImpl(connection);
             case QUERY:
-                return (T) new QueryDAOimpl(connection);
+                return (T) new QueryDAOImpl(connection);
             default:
                 return null;
         }
