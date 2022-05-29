@@ -8,56 +8,47 @@ import lk.ijse.dep8.tasks.entity.TaskList;
 import lk.ijse.dep8.tasks.entity.User;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
-
 public class EntityDTOMapper {
-
-    public static UserDTO getUserDTO(User user){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<User, UserDTO> typeMap = modelMapper.typeMap(User.class, UserDTO.class);
-        typeMap.addMapping(s -> s.getProfilePic(),(d,value)->d.setPicture((String) value));
-        return modelMapper.map(user,UserDTO.class);
+    public static UserDTO getUserDTO(User user) {
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(User.class, UserDTO.class)
+                .addMapping(User::getProfilePic, UserDTO::setPicture)
+                .map(user);
     }
 
-    public static User getUser(UserDTO user){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<UserDTO, User> typeMap = modelMapper.typeMap(UserDTO.class,User.class);
-        return typeMap.map(user);
-//        typeMap.addMapping(UserDTO::getName, User::setFullName);
-//        typeMap.addMapping(s -> s.getPicture(),(d,value)->d.setProfilePic((String) value));
-//        return modelMapper.map(user,User.class);
-
+    public static TaskListDTO getTaskListDTO(TaskList taskList) {
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(TaskList.class, TaskListDTO.class)
+                .addMapping(TaskList::getName, TaskListDTO::setTitle)
+                .map(taskList);
     }
 
-
-    public static TaskListDTO getTaskListDTO(TaskList taskList){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<TaskList, TaskListDTO> typeMap = modelMapper.typeMap(TaskList.class, TaskListDTO.class);
-        typeMap.addMapping(taskList1 -> taskList1.getName(),(d,value)->d.setTitle((String) value));
-        return modelMapper.map(taskList,TaskListDTO.class);
+    public static TaskDTO getTaskDTO(Task task) {
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(Task.class, TaskDTO.class)
+                .addMapping(Task::getDetails, TaskDTO::setNotes)
+                .map(task);
     }
 
-    public static TaskList getTaskList(TaskListDTO taskList){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<TaskListDTO, TaskList> typeMap = modelMapper.typeMap(TaskListDTO.class,TaskList.class);
-        typeMap.addMapping(taskList1 -> taskList1.getTitle(),(d,value)->d.setName((String) value));
-        return modelMapper.map(taskList,TaskList.class);
+    public static User getUser(UserDTO userDTO){
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(UserDTO.class, User.class)
+                .addMapping(UserDTO::getPicture, User::setProfilePic)
+                .map(userDTO);
     }
 
-
-
-    public static TaskDTO getTaskDTO(Task task){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<Task, TaskDTO> typeMap = modelMapper.typeMap(Task.class, TaskDTO.class);
-        typeMap.addMapping(task1 -> task1.getDetails(),(d,value)->d.setNotes((String) value));
-        return modelMapper.map(task,TaskDTO.class);
+    public static TaskList getTaskList(TaskListDTO taskListDTO){
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(TaskListDTO.class, TaskList.class)
+                .addMapping(TaskListDTO::getTitle, TaskList::setName)
+                .map(taskListDTO);
     }
 
-    public static Task getTask(TaskDTO task){
-        ModelMapper modelMapper = new ModelMapper();
-        TypeMap<TaskDTO, Task> typeMap = modelMapper.typeMap(TaskDTO.class,Task.class);
-        typeMap.addMapping(task1 -> task1.getNotes(),(d,value)->d.setDetails((String) value));
-        return modelMapper.map(task,Task.class);
+    public static Task getTask(TaskDTO taskDTO){
+        ModelMapper mapper = new ModelMapper();
+        return mapper.typeMap(TaskDTO.class, Task.class)
+                .addMapping(TaskDTO::getNotes, Task::setDetails)
+                .map(taskDTO);
     }
-
 
 }
