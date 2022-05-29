@@ -17,7 +17,7 @@ public interface TaskService extends SuperService {
 
     Optional<List<TaskDTO>> getTask(int taskListId, String userId);
 
-    void deleteTask(String id, String appLocation);
+    void deleteTask(TaskDTO id);
 
     void updateTask(String userId, int taskListId, int taskId,TaskDTO newTask);
     /*==================================================================================*/

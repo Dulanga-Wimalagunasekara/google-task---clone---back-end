@@ -71,8 +71,24 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTask(String id, String appLocation) {
-
+    public void deleteTask(TaskDTO task) {
+        Connection connection=null;
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+            pushUp(connection,task.getPosition(),task.getTaskListId());
+            TaskDAO taskDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);
+            taskDAO.deleteById(task.getId());
+            connection.commit();
+        } catch (SQLException e) {
+            throw new FailedExecutionException("Failed to delete the task",e);
+        }finally {
+            Connection tempConnection=connection;
+            ExecutionContext.execute(()->{
+                tempConnection.setAutoCommit(true);
+                tempConnection.rollback();
+            });
+        }
     }
 
     @Override

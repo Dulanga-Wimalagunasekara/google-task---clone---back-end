@@ -57,10 +57,10 @@ public class TaskDAOImpl implements TaskDAO {
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
             stm.setInt(1, taskId);
             if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to delete the Task");
+                throw new DataAccessException("Failed to delete the Task");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DataAccessException("Failed to delete the Task");
         }
 
     }

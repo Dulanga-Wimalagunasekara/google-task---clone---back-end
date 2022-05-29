@@ -11,9 +11,11 @@ import lk.ijse.dep8.tasks.dao.DAOFactory;
 import lk.ijse.dep8.tasks.dao.SuperDAO;
 import lk.ijse.dep8.tasks.dao.custome.QueryDAO;
 import lk.ijse.dep8.tasks.dto.TaskDTO;
+import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
 import lk.ijse.dep8.tasks.service.SuperService;
 import lk.ijse.dep8.tasks.service.custome.TaskService;
+import lk.ijse.dep8.tasks.service.custome.UserService;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -127,30 +129,12 @@ public class TaskServlet extends HttpServlet2 {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         TaskDTO task = getTaskList(req);
-        Connection connection=null;
         try {
-            connection=pool.get().getConnection();
-            connection.setAutoCommit(false);
-            pushUp(connection,task.getPosition(),task.getTaskListId());
-            PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
-            stm.setInt(1,task.getId());
-            if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the Task");
-            }
-            connection.commit();
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            service.deleteTask(task);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(),e);
-        }finally {
-            try {
-                if (connection!=null){
-                    connection.rollback();
-                    connection.close();
-                    connection.setAutoCommit(true);
-                }
-            } catch (SQLException e) {
-                logger.log(Level.SEVERE, e.getMessage(),e);
-            }
         }
     }
 
