@@ -45,7 +45,7 @@ public class TaskListServlet extends HttpServlet2 {
         }
     }
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
         }
@@ -109,22 +109,19 @@ public class TaskListServlet extends HttpServlet2 {
 
     }
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp){
         TaskListDTO taskList = getTaskList(req);
-        try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.prepareStatement("DELETE FROM task_list WHERE id=?");
-            stm.setInt(1,taskList.getId());
-            if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the Task");
-            }
+        try{
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            service.deleteTaskList(taskList);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(),e);
         }
     }
 
     @Override
-    protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws IOException {
         if (req.getContentType()==null || !req.getContentType().equals("application/json")){
             throw new ResponseStatusException(405,"Invalid content type or content type is empty");
         }
@@ -154,7 +151,7 @@ public class TaskListServlet extends HttpServlet2 {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?";
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         if (matcher.find()){

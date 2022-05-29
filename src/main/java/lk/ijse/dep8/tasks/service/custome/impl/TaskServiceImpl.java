@@ -190,8 +190,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTaskList(String id, String appLocation) {
-
+    public void deleteTaskList(TaskListDTO taskList) {
+        try {
+            Connection connection = dataSource.getConnection();
+            TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
+            taskListDAO.deleteById(taskList.getId());
+        } catch (SQLException e) {
+            throw new FailedExecutionException("Unable to delete the tasKList");
+        }
     }
 
     @Override

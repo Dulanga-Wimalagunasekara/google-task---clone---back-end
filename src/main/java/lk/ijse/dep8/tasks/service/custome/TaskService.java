@@ -29,7 +29,7 @@ public interface TaskService extends SuperService {
 
     Optional<TaskListDTO> getTaskList(int taskListId, String userId);
 
-    void deleteTaskList(String id, String appLocation);
+    void deleteTaskList(TaskListDTO taskList);
 
     void updateTaskList(UserDTO user, Part picture, String appLocation);
     void pushUp(Connection connection, int pos, int taskListId) throws SQLException;
