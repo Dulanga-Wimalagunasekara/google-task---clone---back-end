@@ -22,6 +22,7 @@ import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
 import javax.servlet.http.Part;
 import javax.sql.DataSource;
+import javax.swing.text.html.Option;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -193,6 +194,22 @@ public class TaskServiceImpl implements TaskService {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Optional<List<TaskListDTO>> getTaskListsByUserId(String userId){
+        try {
+            List<TaskListDTO> taskListDTOS = new ArrayList<>();
+            Connection connection = dataSource.getConnection();
+            TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
+            Optional<List<TaskList>> byUserId = taskListDAO.findByUserId(userId);
+            for (TaskList entity:byUserId.get()) {
+                taskListDTOS.add(EntityDTOMapper.getTaskListDTO(entity));
+            }
+            return Optional.of(taskListDTOS);
+        } catch (SQLException e) {
+            throw new FailedExecutionException("Unable to get the task lists");
         }
     }
 

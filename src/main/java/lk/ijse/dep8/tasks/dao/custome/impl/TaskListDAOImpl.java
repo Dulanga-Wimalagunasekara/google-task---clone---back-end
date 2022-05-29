@@ -2,6 +2,7 @@ package lk.ijse.dep8.tasks.dao.custome.impl;
 
 import lk.ijse.dep8.tasks.dao.custome.TaskListDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
+import lk.ijse.dep8.tasks.dto.TaskListDTO;
 import lk.ijse.dep8.tasks.entity.TaskList;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -152,6 +153,26 @@ public class TaskListDAOImpl implements TaskListDAO {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Optional<List<TaskList>> findByUserId(String userId) {
+        ArrayList<TaskList> taskLists;
+        try {
+            PreparedStatement stm = connection.
+                    prepareStatement("SELECT * FROM task_list t WHERE t.user_id=?");
+            stm.setString(1, userId);
+            ResultSet rst = stm.executeQuery();
+            taskLists = new ArrayList<>();
+            while (rst.next()) {
+                int id = rst.getInt("id");
+                String title = rst.getString("name");
+                taskLists.add(new TaskList(id, title, userId));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Failed to fetch the TaskLists");
+        }
+        return Optional.of(taskLists);
     }
 
 

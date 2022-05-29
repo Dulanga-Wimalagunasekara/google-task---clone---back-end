@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
@@ -33,20 +34,6 @@ import java.util.regex.Pattern;
 
 @WebServlet(name = "TaskListServlet")
 public class TaskListServlet extends HttpServlet2 {
-    private AtomicReference<DataSource> pool;
-    private final Logger logger = Logger.getLogger(TaskListServlet.class.getName());
-
-    @PostConstruct
-    public void init() {
-        try {
-            InitialContext ctx = new InitialContext();
-            DataSource ds = (DataSource) ctx.lookup("java:comp//env/jdbc/pool");
-            pool = new AtomicReference<>(ds);
-        } catch (NamingException e) {
-            logger.severe("Failed to locate the JNDI pool");
-        }
-    }
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
@@ -143,28 +130,17 @@ public class TaskListServlet extends HttpServlet2 {
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         if (matcher.find()) {
             String userId = matcher.group(1);
-
-            try (Connection connection = pool.get().getConnection()) {
-                PreparedStatement stm = connection.
-                        prepareStatement("SELECT * FROM task_list t WHERE t.user_id=?");
-                stm.setString(1, userId);
-                ResultSet rst = stm.executeQuery();
-
-                ArrayList<TaskListDTO> taskLists = new ArrayList<>();
-                while (rst.next()) {
-                    int id = rst.getInt("id");
-                    String title = rst.getString("name");
-                    taskLists.add(new TaskListDTO(id, title, userId));
-                }
-
+            try {
+                TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+                Optional<List<TaskListDTO>> taskLists = service.getTaskListsByUserId(userId);
                 resp.setContentType("application/json");
                 Jsonb jsonb = JsonbBuilder.create();
-                JsonParser parser = Json.createParser(new StringReader(jsonb.toJson(taskLists)));
+                JsonParser parser = Json.createParser(new StringReader(jsonb.toJson(taskLists.get())));
                 parser.next();
                 JsonObject json = Json.createObjectBuilder().add("items", parser.getArray()).build();
                 resp.getWriter().println(json);
-            } catch (SQLException e) {
-                throw new ResponseStatusException(500, e.getMessage(), e);
+            } catch (Throwable e) {
+                throw new ResponseStatusException(500, "Internal Server Error", e);
             }
         } else {
             TaskListDTO taskList = getTaskList(req);
