@@ -25,7 +25,7 @@ public interface TaskService extends SuperService {
 
     void updateTask(String userId, int taskListId, int taskId,TaskDTO newTask);
     /*==================================================================================*/
-    UserDTO saveTaskList(Part picture, String appLocation, UserDTO user);
+    TaskListDTO saveTaskList(TaskListDTO taskList);
 
     Optional<TaskListDTO> getTaskList(int taskListId, String userId);
 

@@ -52,7 +52,6 @@ public class TaskListServlet extends HttpServlet2 {
         if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
             throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
         }
-
         String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?.*";
         if (!req.getPathInfo().matches(pattern)) {
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Invalid end point");
@@ -60,28 +59,19 @@ public class TaskListServlet extends HttpServlet2 {
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         matcher.find();
         String userId = matcher.group(1);
-
-        try (Connection connection = pool.get().getConnection()) {
+        try {
             Jsonb jsonb = JsonbBuilder.create();
             TaskListDTO taskList = jsonb.fromJson(req.getReader(), TaskListDTO.class);
+            taskList.setUserID(userId);
             if (taskList.getTitle().trim().isEmpty()) {
                 throw new ResponseStatusException(400, "Invalid title or title is empty");
             }
-            PreparedStatement stm = connection.prepareStatement("INSERT INTO task_list (name,user_id) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
-            stm.setString(1, taskList.getTitle());
-            stm.setString(2, userId);
-            if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to save the Task list");
-            }
-            ResultSet rst = stm.getGeneratedKeys();
-            rst.next();
-            taskList.setId(rst.getInt(1));
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            TaskListDTO list = service.saveTaskList(taskList);
             resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_CREATED);
-            jsonb.toJson(taskList, resp.getWriter());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (JsonbException e) {
+            jsonb.toJson(list, resp.getWriter());
+        } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
         }
 
@@ -142,8 +132,8 @@ public class TaskListServlet extends HttpServlet2 {
             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (FailedExecutionException e) {
             throw new ResponseStatusException(400, e.getMessage(), e);
-        }catch (Throwable e){
-            throw new ResponseStatusException(500,"Internal Server Error",e);
+        } catch (Throwable e) {
+            throw new ResponseStatusException(500, "Internal Server Error", e);
         }
     }
 

@@ -169,8 +169,15 @@ public class TaskServiceImpl implements TaskService {
     /*================================================================================*/
 
     @Override
-    public UserDTO saveTaskList(Part picture, String appLocation, UserDTO user) {
-        return null;
+    public TaskListDTO saveTaskList(TaskListDTO taskList) {
+        try {
+            Connection connection = dataSource.getConnection();
+            TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
+            TaskList savedList = taskListDAO.save(EntityDTOMapper.getTaskList(taskList));
+            return EntityDTOMapper.getTaskListDTO(savedList);
+        } catch (SQLException e) {
+            throw new FailedExecutionException("Unable to save the taskList");
+        }
     }
 
     @Override
