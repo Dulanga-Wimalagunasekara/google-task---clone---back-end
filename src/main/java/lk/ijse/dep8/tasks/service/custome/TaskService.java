@@ -1,6 +1,7 @@
 package lk.ijse.dep8.tasks.service.custome;
 
 import lk.ijse.dep8.tasks.dto.TaskDTO;
+import lk.ijse.dep8.tasks.dto.TaskListDTO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.entity.Task;
 import lk.ijse.dep8.tasks.service.SuperService;
@@ -26,7 +27,7 @@ public interface TaskService extends SuperService {
     /*==================================================================================*/
     UserDTO saveTaskList(Part picture, String appLocation, UserDTO user);
 
-    UserDTO getTaskList(int taskListId,String userId);
+    Optional<TaskListDTO> getTaskList(int taskListId, String userId);
 
     void deleteTaskList(String id, String appLocation);
 

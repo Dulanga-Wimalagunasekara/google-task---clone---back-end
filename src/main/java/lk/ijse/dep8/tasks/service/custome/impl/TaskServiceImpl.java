@@ -11,6 +11,7 @@ import lk.ijse.dep8.tasks.dto.TaskListDTO;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.entity.SuperEntity;
 import lk.ijse.dep8.tasks.entity.Task;
+import lk.ijse.dep8.tasks.entity.TaskList;
 import lk.ijse.dep8.tasks.entity.User;
 import lk.ijse.dep8.tasks.service.custome.TaskService;
 import lk.ijse.dep8.tasks.service.exception.FailedExecutionException;
@@ -173,8 +174,19 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public UserDTO getTaskList(int taskListId, String userId) {
-        return null;
+    public Optional<TaskListDTO> getTaskList(int taskListId, String userId) {
+        try {
+            Connection connection = dataSource.getConnection();
+            TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
+            Optional<TaskList> taskListEntity = taskListDAO.getTaskListByIdAndUserId(taskListId, userId);
+            if (taskListEntity.isPresent()){
+                return Optional.of(EntityDTOMapper.getTaskListDTO(taskListEntity.get()));
+            }else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

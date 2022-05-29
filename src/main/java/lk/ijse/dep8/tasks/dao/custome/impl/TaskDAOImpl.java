@@ -2,7 +2,6 @@ package lk.ijse.dep8.tasks.dao.custome.impl;
 
 import lk.ijse.dep8.tasks.dao.custome.TaskDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
-import lk.ijse.dep8.tasks.dto.TaskDTO;
 import lk.ijse.dep8.tasks.entity.Task;
 
 import java.sql.*;

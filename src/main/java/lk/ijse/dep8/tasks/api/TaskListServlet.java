@@ -7,6 +7,9 @@ import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.stream.JsonParser;
 import lk.ijse.dep8.tasks.dto.TaskListDTO;
+import lk.ijse.dep8.tasks.service.ServiceFactory;
+import lk.ijse.dep8.tasks.service.SuperService;
+import lk.ijse.dep8.tasks.service.custome.TaskService;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -91,21 +95,16 @@ public class TaskListServlet extends HttpServlet2 {
         String userId = matcher.group(1);
         String taskListId = matcher.group(2);
 
-        try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id = ? AND t.user_id=?");
-            stm.setInt(1, Integer.parseInt(taskListId));
-            stm.setString(2, userId);
-            ResultSet rst = stm.executeQuery();
-            if (rst.next()){
-                int id = rst.getInt("id");
-                String name = rst.getString("name");
-                String user_id = rst.getString("user_id");
-                return new TaskListDTO(id,name,user_id);
+        try {
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            Optional<TaskListDTO> taskList = service.getTaskList(Integer.parseInt(taskListId), userId);
+            if (taskList.isPresent()){
+                return taskList.get();
             }else {
                 throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND,"Invalid user id or Task list id");
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Can not get the TaskList",e);
         }
 
     }

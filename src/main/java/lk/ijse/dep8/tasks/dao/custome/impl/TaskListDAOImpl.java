@@ -132,4 +132,24 @@ public class TaskListDAOImpl implements TaskListDAO {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public Optional<TaskList> getTaskListByIdAndUserId(int taskListId, String userId) {
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
+            stm.setInt(1, taskListId);
+            stm.setString(2, userId);
+            ResultSet rst = stm.executeQuery();
+            if (stm.executeQuery().next()){
+                return Optional.of(new TaskList(rst.getInt("id"),rst.getString("name"),
+                        rst.getString("userId")));
+            }else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 }

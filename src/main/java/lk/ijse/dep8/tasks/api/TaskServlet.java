@@ -41,20 +41,6 @@ import java.util.regex.Pattern;
 
 @WebServlet(name = "TaskServlet")
 public class TaskServlet extends HttpServlet2 {
-    private AtomicReference<DataSource> pool;
-    private final Logger logger = Logger.getLogger(TaskListServlet.class.getName());
-
-    @PostConstruct
-    public void init() {
-        try {
-            InitialContext ctx = new InitialContext();
-            DataSource ds = (DataSource) ctx.lookup("java:comp//env/jdbc/pool");
-            pool = new AtomicReference<>(ds);
-        } catch (NamingException e) {
-            logger.severe("Failed to locate the JNDI pool");
-        }
-    }
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
