@@ -8,6 +8,10 @@ import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.stream.JsonParser;
 import lk.ijse.dep8.tasks.dto.TaskDTO;
+import lk.ijse.dep8.tasks.dto.UserDTO;
+import lk.ijse.dep8.tasks.service.ServiceFactory;
+import lk.ijse.dep8.tasks.service.SuperService;
+import lk.ijse.dep8.tasks.service.custome.TaskService;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -23,6 +27,7 @@ import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -199,40 +204,23 @@ public class TaskServlet extends HttpServlet2 {
             String userId = matcher.group(1);
             int taskListId = Integer.parseInt(matcher.group(2));
 
-            try (Connection connection = pool.get().getConnection()) {
-                PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
-                stm.setInt(1, taskListId);
-                stm.setString(2, userId);
-                if (!stm.executeQuery().next()) {
-                    throw new ResponseStatusException(404, "Invalid Task list id");
+            try {
+                TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+                Optional<List<TaskDTO>> tasks = service.getTask(taskListId, userId);
+                if (tasks.isPresent()) {
+                    resp.setContentType("application/json");
+                    Jsonb jsonb = JsonbBuilder.create();
+                    String jsonArray = jsonb.toJson(tasks.get());
+                    JsonParser parser = Json.createParser(new StringReader(jsonArray));
+                    parser.next();
+                    JsonArray tasksArray = parser.getArray();
+                    JsonObject json = Json.createObjectBuilder().
+                            add("resource", Json.createObjectBuilder().add("items", tasksArray)).build();
+                    resp.getWriter().println(json);
+                }else {
+                    resp.getWriter().println("Empty");
                 }
-
-                stm = connection.prepareStatement("SELECT * FROM task WHERE task.task_list_id = ? ORDER BY position");
-                stm.setInt(1, taskListId);
-                ResultSet rst = stm.executeQuery();
-
-                List<TaskDTO> tasks = new ArrayList<>();
-                while (rst.next()) {
-                    int id = rst.getInt("id");
-                    String title = rst.getString("title");
-                    String details = rst.getString("details");
-                    int position = rst.getInt("position");
-                    String status = rst.getString("status");
-                    tasks.add(new TaskDTO(id, title, position, details, status, taskListId));
-                }
-
-                resp.setContentType("application/json");
-                Jsonb jsonb = JsonbBuilder.create();
-                String jsonArray = jsonb.toJson(tasks);
-
-                JsonParser parser = Json.createParser(new StringReader(jsonArray));
-                parser.next();
-                JsonArray tasksArray = parser.getArray();
-
-                JsonObject json = Json.createObjectBuilder().
-                        add("resource", Json.createObjectBuilder().add("items", tasksArray)).build();
-                resp.getWriter().println(json);
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 throw new ResponseStatusException(500, e.getMessage(), e);
             }
 

@@ -25,6 +25,7 @@ public class EntityDTOMapper {
 //        typeMap.addMapping(UserDTO::getName, User::setFullName);
 //        typeMap.addMapping(s -> s.getPicture(),(d,value)->d.setProfilePic((String) value));
 //        return modelMapper.map(user,User.class);
+
     }
 
 

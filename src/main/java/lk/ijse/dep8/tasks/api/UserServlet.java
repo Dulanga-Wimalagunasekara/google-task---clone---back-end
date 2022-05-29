@@ -4,24 +4,18 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
-import lk.ijse.dep8.tasks.service.SuperService;
 import lk.ijse.dep8.tasks.service.custome.UserService;
-import lk.ijse.dep8.tasks.service.custome.impl.UserServiceImpl;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
-import javax.annotation.Resource;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.logging.Logger;
 
 @WebServlet(name = "UserServlet")
@@ -81,13 +75,6 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid picture");
         }
 
-        String realPath = getServletContext().getRealPath("/");
-        Path path = Paths.get(realPath, "uploads");
-        if (Files.notExists(path)) {
-            Files.createDirectory(path);
-        }
-
-        Connection connection = null;
         try {
             UserService UserService = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
             if(UserService.existsUser(email)){

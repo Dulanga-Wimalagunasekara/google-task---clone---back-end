@@ -4,4 +4,5 @@ import lk.ijse.dep8.tasks.dao.crudDAO;
 import lk.ijse.dep8.tasks.entity.TaskList;
 
 public interface TaskListDAO extends crudDAO<TaskList,Integer> {
+    boolean existTaskListByIdAndUserId(int taskListId,String userId);
 }

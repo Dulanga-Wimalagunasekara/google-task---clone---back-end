@@ -19,4 +19,5 @@ public interface crudDAO<T extends SuperEntity,ID extends Serializable> extends 
     List<T> findAll();
 
     long count();
+
 }

@@ -31,6 +31,7 @@ public class DBInitializer implements ServletContextListener {
         try (Connection connection = pool.getConnection()) {
             Statement stm = connection.createStatement();
             ResultSet rst = stm.executeQuery("SHOW TABLES");
+
             while (rst.next()){
                 tableList.add(rst.getString(1));
             }

@@ -3,6 +3,7 @@ package lk.ijse.dep8.tasks.dao.custome.impl;
 import lk.ijse.dep8.tasks.dao.custome.TaskListDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
 import lk.ijse.dep8.tasks.entity.TaskList;
+import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,26 +13,26 @@ import java.util.Optional;
 public class TaskListDAOImpl implements TaskListDAO {
     private Connection connection;
 
-    public TaskListDAOImpl(Connection connection){
-        this.connection=connection;
+    public TaskListDAOImpl(Connection connection) {
+        this.connection = connection;
     }
 
     @Override
-    public TaskList save(TaskList list){
+    public TaskList save(TaskList list) {
         try {
-            if (!existsById(list.getId())){
+            if (!existsById(list.getId())) {
                 PreparedStatement stm = connection.prepareStatement("INSERT INTO task_list (name, user_id) VALUES (?,?)");
-                stm.setString(1,list.getName());
-                stm.setString(2,list.getUserId());
-                if (stm.executeUpdate()!=1){
+                stm.setString(1, list.getName());
+                stm.setString(2, list.getUserId());
+                if (stm.executeUpdate() != 1) {
                     throw new SQLException("Failed to save the user");
                 }
-            }else {
+            } else {
                 PreparedStatement stm = connection.prepareStatement("UPDATE task_list SET name=?, user_id=? WHERE id=?");
-                stm.setString(1,list.getName());
-                stm.setString(2,list.getUserId());
-                stm.setInt(3,list.getId());
-                if (stm.executeUpdate()!=1){
+                stm.setString(1, list.getName());
+                stm.setString(2, list.getUserId());
+                stm.setInt(3, list.getId());
+                if (stm.executeUpdate() != 1) {
                     throw new SQLException("Failed to update the user");
                 }
             }
@@ -42,14 +43,14 @@ public class TaskListDAOImpl implements TaskListDAO {
     }
 
     @Override
-    public void deleteById(Integer listId){
+    public void deleteById(Integer listId) {
         try {
-            if (!existsById(listId)){
+            if (!existsById(listId)) {
                 throw new DataAccessException("No user Found!");
             }
             PreparedStatement stm = connection.prepareStatement("DELETE FROM task_list WHERE id=?");
-            stm.setInt(1,listId);
-            if (stm.executeUpdate()!=1){
+            stm.setInt(1, listId);
+            if (stm.executeUpdate() != 1) {
                 throw new SQLException("Failed to delete the user");
             }
         } catch (SQLException e) {
@@ -59,16 +60,16 @@ public class TaskListDAOImpl implements TaskListDAO {
     }
 
     @Override
-    public Optional<TaskList> findById(Integer listId){
+    public Optional<TaskList> findById(Integer listId) {
         try {
             PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list WHERE id=?");
             stm.setInt(1, listId);
             ResultSet rst = stm.executeQuery();
-            if (rst.next()){
+            if (rst.next()) {
                 return Optional.of(new TaskList(rst.getInt("id"),
                         rst.getString("name"),
                         rst.getString("user_id")));
-            }else {
+            } else {
                 return Optional.empty();
             }
         } catch (SQLException e) {
@@ -77,7 +78,7 @@ public class TaskListDAOImpl implements TaskListDAO {
     }
 
     @Override
-    public boolean existsById(Integer listId){
+    public boolean existsById(Integer listId) {
         try {
             PreparedStatement stm = connection.prepareStatement("SELECT id FROM task_list WHERE id=?");
             stm.setInt(1, listId);
@@ -88,12 +89,12 @@ public class TaskListDAOImpl implements TaskListDAO {
     }
 
     @Override
-    public List<TaskList> findAll(){
+    public List<TaskList> findAll() {
         try {
             Statement stm = connection.createStatement();
             ResultSet rst = stm.executeQuery("SELECT * FROM task_list");
             List<TaskList> tasks = new ArrayList<>();
-            while (rst.next()){
+            while (rst.next()) {
                 tasks.add(new TaskList(rst.getInt("id"),
                         rst.getString("name"),
                         rst.getString("user_id")));
@@ -105,14 +106,29 @@ public class TaskListDAOImpl implements TaskListDAO {
     }
 
     @Override
-    public long count(){
+    public long count() {
         try {
             Statement stm = connection.createStatement();
             ResultSet rst = stm.executeQuery("SELECT COUNT(*) AS count FROM task_list");
-            if (rst.next()){
+            if (rst.next()) {
                 return rst.getLong("count");
             }
             return 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public boolean existTaskListByIdAndUserId(int taskListId, String userId) {
+        try {
+            PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
+            stm.setInt(1, taskListId);
+            stm.setString(2, userId);
+
+            return stm.executeQuery().next();
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

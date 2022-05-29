@@ -14,9 +14,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-import javax.sql.ConnectionEvent;
 import javax.sql.DataSource;
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,12 +30,13 @@ public class UserServiceImpl implements UserService {
     private DataSource dataSource;
 
     public UserServiceImpl() {
-        dataSource= JNDIConnectionPool.getInstance().getPool();
+        dataSource = JNDIConnectionPool.getInstance().getPool();
     }
 
     private Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
-    public UserDTO registerUser(Part picture, String appLocation, UserDTO user){
-        Connection connection=null;
+
+    public UserDTO registerUser(Part picture, String appLocation, UserDTO user) {
+        Connection connection = null;
         try {
             connection = JNDIConnectionPool.getInstance().getPool().getConnection();
             connection.setAutoCommit(false);
@@ -48,10 +47,8 @@ public class UserServiceImpl implements UserService {
             user.setPassword(DigestUtils.sha256Hex(user.getPassword()));
             UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
             User userEntity = EntityDTOMapper.getUser(user);
-//            User userEntity = new User(user.getId(), user.getEmail(), user.getPassword(), user.getName(), user.getPicture());
             User savedUser = userDAOImpl.save(userEntity);
             user = EntityDTOMapper.getUserDTO(savedUser);
-//            user = new UserDTO(savedUser.getId(), savedUser.getFullName(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getProfilePic());
             if (picture != null) {
                 Path path = Paths.get(appLocation, "uploads");
                 if (Files.notExists(path)) {
@@ -63,23 +60,23 @@ public class UserServiceImpl implements UserService {
             connection.commit();
             return user;
         } catch (Throwable t) {
-            if (connection!=null){
+            if (connection != null) {
                 ExecutionContext.execute(connection::rollback);
             }
-            throw new FailedExecutionException("Failed to save the user",t);
+            throw new FailedExecutionException("Failed to save the user", t);
         } finally {
-            if (connection!=null){
-                Connection tempConnection=connection;
-                ExecutionContext.execute(()->tempConnection.setAutoCommit(true));
+            if (connection != null) {
+                Connection tempConnection = connection;
+                ExecutionContext.execute(() -> tempConnection.setAutoCommit(true));
                 ExecutionContext.execute(connection::close);
             }
         }
     }
 
     public void updateUser(UserDTO user, Part picture, String appLocation) {
-        Connection connection=null;
+        Connection connection = null;
         try {
-            connection=JNDIConnectionPool.getInstance().getPool().getConnection();
+            connection = JNDIConnectionPool.getInstance().getPool().getConnection();
             connection.setAutoCommit(false);
             UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
             Optional<User> userWrapper = userDAOImpl.findById(user.getId());
@@ -110,14 +107,14 @@ public class UserServiceImpl implements UserService {
             }
             connection.commit();
         } catch (SQLException | IOException e) {
-            if (connection!=null){
+            if (connection != null) {
                 ExecutionContext.execute(connection::rollback);
             }
             throw new RuntimeException(e);
         } finally {
-            if (connection!=null){
-                Connection tempConnection=connection;
-                ExecutionContext.execute(()->tempConnection.setAutoCommit(true));
+            if (connection != null) {
+                Connection tempConnection = connection;
+                ExecutionContext.execute(() -> tempConnection.setAutoCommit(true));
                 ExecutionContext.execute(connection::close);
             }
         }
@@ -126,7 +123,7 @@ public class UserServiceImpl implements UserService {
 
     public void deleteUser(String id, String appLocation) {
         try {
-            Connection connection= JNDIConnectionPool.getInstance().getPool().getConnection();
+            Connection connection = JNDIConnectionPool.getInstance().getPool().getConnection();
             UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
             userDAOImpl.deleteById(id);
             new Thread(() -> {
@@ -138,7 +135,7 @@ public class UserServiceImpl implements UserService {
                 }
             }).start();
         } catch (SQLException e) {
-            throw new FailedExecutionException("Failed t delete the user",e);
+            throw new FailedExecutionException("Failed t delete the user", e);
         }
     }
 
@@ -149,20 +146,20 @@ public class UserServiceImpl implements UserService {
             Optional<User> userWrapper = userDAOImpl.findUserByIdOrEmail(emailOrId);
             return EntityDTOMapper.getUserDTO(userWrapper.orElse(null));
         } catch (SQLException e) {
-            throw new FailedExecutionException("Failed to fetch the user",e);
+            throw new FailedExecutionException("Failed to fetch the user", e);
         }
 //        return userWrapper.map(user -> new UserDTO(user.getId(), user.getFullName(), user.getEmail(), user.getPassword(), user.getProfilePic()))
 //                .orElse(null);
     }
 
-    public boolean existsUser(String emailOrId){
+    public boolean existsUser(String emailOrId) {
         try (Connection connection = dataSource.getConnection()) {
 
-                UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
-                return userDAOImpl.existsUserEmailOrUserId(emailOrId);
+            UserDAO userDAOImpl = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.USER);
+            return userDAOImpl.existsUserEmailOrUserId(emailOrId);
 
-        }catch (SQLException t){
-            throw new FailedExecutionException("Failed to check the existence",t);
+        } catch (SQLException t) {
+            throw new FailedExecutionException("Failed to check the existence", t);
         }
     }
 
