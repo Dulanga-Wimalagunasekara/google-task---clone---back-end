@@ -21,7 +21,7 @@ public class TaskDAOImpl implements TaskDAO {
     public Task save(Task task) {
         try {
             if (!existsById(task.getId())) {
-                PreparedStatement stm = connection.prepareStatement("INSERT INTO task (title, details, position, status, task_list_id) VALUES (?,?,?,?,?)");
+                PreparedStatement stm = connection.prepareStatement("INSERT INTO task (title, details, position, status, task_list_id) VALUES (?,?,?,?,?)",Statement.RETURN_GENERATED_KEYS);
                 stm.setString(1, task.getTitle());
                 stm.setString(2, task.getDetails());
                 stm.setInt(3, task.getPosition());
@@ -30,6 +30,9 @@ public class TaskDAOImpl implements TaskDAO {
                 if (stm.executeUpdate() != 1) {
                     throw new SQLException("Failed to save the Task");
                 }
+                ResultSet rst = stm.getGeneratedKeys();
+                rst.next();
+                task.setId(rst.getInt(1));
             } else {
                 PreparedStatement stm = connection.prepareStatement("UPDATE task SET title=?, details =?, position=?, status=?, task_list_id=? WHERE id=?");
                 stm.setString(1, task.getTitle());

@@ -41,8 +41,29 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public UserDTO saveTask(Part picture, String appLocation, UserDTO user) {
-        return null;
+    public TaskDTO saveTask(int taskListId, String userId, TaskDTO task) {
+        try {
+            Connection connection = dataSource.getConnection();
+            TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
+            boolean isExists = taskListDAO.existTaskListByIdAndUserId(taskListId, userId);
+            if (isExists){
+                throw new FailedExecutionException("Invalid user id or Task list id");
+            }
+            if (task == null || task.getTitle().trim().isEmpty()) {
+                throw new FailedExecutionException("Invalid title or title is empty");
+            }
+            connection.setAutoCommit(false);
+            pushDown(connection, 0, taskListId);
+            TaskDAO taskDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);
+            Task taskEntity = EntityDTOMapper.getTask(task);
+            Task save = taskDAO.save(taskEntity);
+            connection.commit();
+            TaskDTO taskDTO = EntityDTOMapper.getTaskDTO(save);
+            return taskDTO;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override

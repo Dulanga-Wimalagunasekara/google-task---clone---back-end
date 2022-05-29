@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface TaskService extends SuperService {
     boolean existsTask(String emailOrId);
 
-    UserDTO saveTask(Part picture, String appLocation, UserDTO user);
+    TaskDTO saveTask(int taskListId, String userId, TaskDTO task);
 
     Optional<List<TaskDTO>> getTask(int taskListId, String userId);
 
