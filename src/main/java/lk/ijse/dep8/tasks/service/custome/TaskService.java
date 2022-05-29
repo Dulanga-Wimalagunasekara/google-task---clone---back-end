@@ -31,7 +31,7 @@ public interface TaskService extends SuperService {
 
     void deleteTaskList(TaskListDTO taskList);
 
-    void updateTaskList(UserDTO user, Part picture, String appLocation);
+    void updateTaskList(TaskListDTO newTaskList);
     void pushUp(Connection connection, int pos, int taskListId) throws SQLException;
 
     void pushDown(Connection connection, int pos, int taskListId) throws SQLException;

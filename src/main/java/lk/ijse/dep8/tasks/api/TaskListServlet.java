@@ -10,6 +10,7 @@ import lk.ijse.dep8.tasks.dto.TaskListDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
 import lk.ijse.dep8.tasks.service.SuperService;
 import lk.ijse.dep8.tasks.service.custome.TaskService;
+import lk.ijse.dep8.tasks.service.exception.FailedExecutionException;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -34,8 +35,9 @@ import java.util.regex.Pattern;
 public class TaskListServlet extends HttpServlet2 {
     private AtomicReference<DataSource> pool;
     private final Logger logger = Logger.getLogger(TaskListServlet.class.getName());
+
     @PostConstruct
-    public void init(){
+    public void init() {
         try {
             InitialContext ctx = new InitialContext();
             DataSource ds = (DataSource) ctx.lookup("java:comp//env/jdbc/pool");
@@ -44,6 +46,7 @@ public class TaskListServlet extends HttpServlet2 {
             logger.severe("Failed to locate the JNDI pool");
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
@@ -51,8 +54,8 @@ public class TaskListServlet extends HttpServlet2 {
         }
 
         String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?.*";
-        if (!req.getPathInfo().matches(pattern)){
-            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,"Invalid end point");
+        if (!req.getPathInfo().matches(pattern)) {
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Invalid end point");
         }
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         matcher.find();
@@ -78,17 +81,17 @@ public class TaskListServlet extends HttpServlet2 {
             jsonb.toJson(taskList, resp.getWriter());
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        }catch (JsonbException e) {
+        } catch (JsonbException e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
         }
 
     }
 
-    private TaskListDTO getTaskList(HttpServletRequest req){
+    private TaskListDTO getTaskList(HttpServletRequest req) {
         String pattern = "/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/?";
-        if (!req.getPathInfo().matches(pattern)){
+        if (!req.getPathInfo().matches(pattern)) {
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-                    String.format("Invalid end point for %s request",req.getMethod()));
+                    String.format("Invalid end point for %s request", req.getMethod()));
         }
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
         matcher.find();
@@ -98,55 +101,49 @@ public class TaskListServlet extends HttpServlet2 {
         try {
             TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
             Optional<TaskListDTO> taskList = service.getTaskList(Integer.parseInt(taskListId), userId);
-            if (taskList.isPresent()){
+            if (taskList.isPresent()) {
                 return taskList.get();
-            }else {
-                throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND,"Invalid user id or Task list id");
+            } else {
+                throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid user id or Task list id");
             }
         } catch (Throwable e) {
-            throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Can not get the TaskList",e);
+            throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Can not get the TaskList", e);
         }
 
     }
+
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp){
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
         TaskListDTO taskList = getTaskList(req);
-        try{
+        try {
             TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
             service.deleteTaskList(taskList);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Throwable e) {
-            throw new ResponseStatusException(500, e.getMessage(),e);
+            throw new ResponseStatusException(500, e.getMessage(), e);
         }
     }
 
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        if (req.getContentType()==null || !req.getContentType().equals("application/json")){
-            throw new ResponseStatusException(405,"Invalid content type or content type is empty");
+        if (req.getContentType() == null || !req.getContentType().equals("application/json")) {
+            throw new ResponseStatusException(405, "Invalid content type or content type is empty");
         }
-        TaskListDTO oldTaskList = getTaskList(req);
         Jsonb jsonb = JsonbBuilder.create();
         TaskListDTO newTaskList;
-        try{
+        try {
             newTaskList = jsonb.fromJson(req.getReader(), TaskListDTO.class);
-        }catch (JsonbException e){
+        } catch (JsonbException e) {
             throw new ResponseStatusException(400, "Invalid JSON", e);
         }
-
-        if (newTaskList.getTitle() == null || newTaskList.getTitle().trim().isEmpty()){
-            throw new ResponseStatusException(400,"Invalid title or title is Empty");
-        }
-        try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.prepareStatement("UPDATE task_list SET name=? WHERE id=?");
-            stm.setString(1,newTaskList.getTitle());
-            stm.setInt(2,oldTaskList.getId());
-            if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to Update the tasK list");
-            }
+        TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+        service.updateTaskList(newTaskList);
+        try {
             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (SQLException e) {
-            throw new ResponseStatusException(500,e.getMessage(),e);
+        } catch (FailedExecutionException e) {
+            throw new ResponseStatusException(400, e.getMessage(), e);
+        }catch (Throwable e){
+            throw new ResponseStatusException(500,"Internal Server Error",e);
         }
     }
 
@@ -154,17 +151,17 @@ public class TaskListServlet extends HttpServlet2 {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pattern = "/([A-Fa-f0-9\\-]{36})/lists/?";
         Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
-        if (matcher.find()){
+        if (matcher.find()) {
             String userId = matcher.group(1);
 
             try (Connection connection = pool.get().getConnection()) {
                 PreparedStatement stm = connection.
                         prepareStatement("SELECT * FROM task_list t WHERE t.user_id=?");
-                stm.setString(1,userId);
+                stm.setString(1, userId);
                 ResultSet rst = stm.executeQuery();
 
                 ArrayList<TaskListDTO> taskLists = new ArrayList<>();
-                while (rst.next()){
+                while (rst.next()) {
                     int id = rst.getInt("id");
                     String title = rst.getString("name");
                     taskLists.add(new TaskListDTO(id, title, userId));
@@ -179,11 +176,11 @@ public class TaskListServlet extends HttpServlet2 {
             } catch (SQLException e) {
                 throw new ResponseStatusException(500, e.getMessage(), e);
             }
-        }else {
+        } else {
             TaskListDTO taskList = getTaskList(req);
             Jsonb jsonb = JsonbBuilder.create();
             resp.setContentType("application/json");
-            jsonb.toJson(taskList,resp.getWriter());
+            jsonb.toJson(taskList, resp.getWriter());
         }
     }
 }
