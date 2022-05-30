@@ -241,12 +241,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void pushUp(Connection connection, int pos, int taskListId) throws SQLException {
-
+        TaskDAO dao = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);
+        dao.pushUp(connection,pos,taskListId);
     }
 
     @Override
     public void pushDown(Connection connection, int pos, int taskListId) throws SQLException {
-
+        TaskDAO dao = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);
+        dao.pushDown(connection,pos,taskListId);
     }
 }
 
