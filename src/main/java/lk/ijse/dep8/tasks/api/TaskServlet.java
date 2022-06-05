@@ -7,8 +7,16 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.stream.JsonParser;
+import lk.ijse.dep8.tasks.dao.DAOFactory;
+import lk.ijse.dep8.tasks.dao.SuperDAO;
+import lk.ijse.dep8.tasks.dao.custome.QueryDAO;
 import lk.ijse.dep8.tasks.dto.TaskDTO;
-import lk.ijse.dep8.tasks.dto.TaskListDTO;
+import lk.ijse.dep8.tasks.dto.UserDTO;
+import lk.ijse.dep8.tasks.service.ServiceFactory;
+import lk.ijse.dep8.tasks.service.SuperService;
+import lk.ijse.dep8.tasks.service.custome.TaskService;
+import lk.ijse.dep8.tasks.service.custome.UserService;
+import lk.ijse.dep8.tasks.service.exception.FailedExecutionException;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
@@ -24,6 +32,7 @@ import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,19 +41,114 @@ import java.util.regex.Pattern;
 
 @WebServlet(name = "TaskServlet")
 public class TaskServlet extends HttpServlet2 {
-    private AtomicReference<DataSource> pool;
-    private final Logger logger = Logger.getLogger(TaskListServlet.class.getName());
-    @PostConstruct
-    public void init(){
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
+            throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
+        }
+        String pattern = "/([A-Fa-f0-9\\-]{36})/lists/(\\d)+/tasks/?";
+
+        if (!req.getPathInfo().matches(pattern)) {
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Invalid end point");
+        }
+        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
+        matcher.find();
+        String userId = matcher.group(1);
+        int taskListId = Integer.parseInt(matcher.group(2));
         try {
-            InitialContext ctx = new InitialContext();
-            DataSource ds = (DataSource) ctx.lookup("java:comp//env/jdbc/pool");
-            pool = new AtomicReference<>(ds);
-        } catch (NamingException e) {
-            logger.severe("Failed to locate the JNDI pool");
+            Jsonb jsonb = JsonbBuilder.create();
+            TaskDTO task = jsonb.fromJson(req.getReader(), TaskDTO.class);
+            task.setPosition(0);
+            task.setStatusAsEnum(TaskDTO.Status.NEEDS_ACTION);
+
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            TaskDTO savedTask = service.saveTask(taskListId, userId, task);
+            resp.setContentType("application/json");
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            jsonb.toJson(savedTask, resp.getWriter());
+        } catch (Throwable e) {
+            throw new ResponseStatusException(500, e.getMessage(), e);
+        }
+
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pattern = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/(\\d+)/?$";
+        if (!req.getPathInfo().matches(pattern)) {
+            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                    String.format("Invalid end point for %s request", req.getMethod()));
+        }
+        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
+        matcher.find();
+        String userId = matcher.group(1);
+        int taskListId = Integer.parseInt(matcher.group(2));
+        int taskId = Integer.parseInt(matcher.group(3));
+        try {
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            service.deleteTask(userId,taskListId,taskId);
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } catch (Throwable e) {
+            throw new ResponseStatusException(500, e.getMessage(), e);
         }
     }
-    private TaskDTO getTaskList(HttpServletRequest req){
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pattern = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/?$";
+        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
+        if (matcher.find()) {
+            String userId = matcher.group(1);
+            int taskListId = Integer.parseInt(matcher.group(2));
+            try {
+                TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+                Optional<List<TaskDTO>> tasks = service.getAllTasks(taskListId, userId);
+                if (tasks.isPresent()) {
+                    resp.setContentType("application/json");
+                    Jsonb jsonb = JsonbBuilder.create();
+                    String jsonArray = jsonb.toJson(tasks.get());
+                    JsonParser parser = Json.createParser(new StringReader(jsonArray));
+                    parser.next();
+                    JsonArray tasksArray = parser.getArray();
+                    JsonObject json = Json.createObjectBuilder().
+                            add("resource", Json.createObjectBuilder().add("items", tasksArray)).build();
+                    resp.getWriter().println(json);
+                } else {
+                    resp.getWriter().println("Empty");
+                }
+            } catch (Throwable e) {
+                throw new ResponseStatusException(500, e.getMessage(), e);
+            }
+
+        } else {
+            String pattern1 = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/(\\d+)/?$";
+            if (!req.getPathInfo().matches(pattern1)) {
+                throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+                        String.format("Invalid end point for %s request", req.getMethod()));
+            }
+            Matcher matcher1 = Pattern.compile(pattern1).matcher(req.getPathInfo());
+            matcher1.find();
+            String userId = matcher1.group(1);
+            int taskListId = Integer.parseInt(matcher1.group(2));
+            int taskId = Integer.parseInt(matcher1.group(3));
+            TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
+            Optional<TaskDTO> taskDTO = service.getSpecificTask(taskListId, userId, taskId);
+            resp.setContentType("application/json");
+            Jsonb jsonb = JsonbBuilder.create();
+            if (taskDTO.isPresent()){
+                jsonb.toJson(taskDTO.get(), resp.getWriter());
+            }else {
+                resp.getWriter().println("Empty");
+            }
+        }
+    }
+
+    @Override
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
+            throw new ResponseStatusException(415, "Invalid content type or content type is empty");
+        }
+
         String pattern = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/(\\d+)/?$";
         if (!req.getPathInfo().matches(pattern)) {
             throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
@@ -56,249 +160,24 @@ public class TaskServlet extends HttpServlet2 {
         int taskListId = Integer.parseInt(matcher.group(2));
         int taskId = Integer.parseInt(matcher.group(3));
 
-        try (Connection connection = pool.get().getConnection()) {
-            PreparedStatement stm = connection.
-                    prepareStatement("SELECT * FROM task_list tl INNER JOIN task t ON t.task_list_id = tl.id WHERE t.id=? AND tl.id=? AND tl.user_id=?");
-            stm.setInt(1, taskId);
-            stm.setInt(2, taskListId);
-            stm.setString(3, userId);
-            ResultSet rst = stm.executeQuery();
-            if (rst.next()) {
-                String title = rst.getString("title");
-                String details = rst.getString("details");
-                int position = rst.getInt("position");
-                String status = rst.getString("status");
-                return new TaskDTO(taskId, title, position, details, status, taskListId);
-            } else {
-                throw new ResponseStatusException(404, "Invalid user id or task list id");
-            }
-        } catch (SQLException e) {
-            throw new ResponseStatusException(500, "Failed to fetch task list details");
-        }
-    }
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
-            throw new ResponseStatusException(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE, "Invalid Content Type Or Content Type is Empty");
-        }
+        TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
 
-        String pattern = "/([A-Fa-f0-9\\-]{36})/lists/(\\d)+/tasks/?";
-        if (!req.getPathInfo().matches(pattern)){
-            throw new ResponseStatusException(HttpServletResponse.SC_METHOD_NOT_ALLOWED,"Invalid end point");
-        }
-        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
-        matcher.find();
-        String userId = matcher.group(1);
-        int taskListId = Integer.parseInt(matcher.group(2));
-
-        Connection connection=null;
-
-        try{
-            connection = pool.get().getConnection();
-            PreparedStatement stm1 = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
-            stm1.setInt(1,taskListId);
-            stm1.setString(2,userId);
-            if (!stm1.executeQuery().next()) {
-                throw new ResponseStatusException(404, "Invalid user id for task list id");
-            }
-
-            Jsonb jsonb = JsonbBuilder.create();
-            TaskDTO task = jsonb.fromJson(req.getReader(), TaskDTO.class);
-            if (task == null || task.getTitle().trim().isEmpty()) {
-                throw new ResponseStatusException(400, "Invalid title or title is empty");
-            }
-            task.setPosition(0);
-            task.setStatusAsEnum(TaskDTO.Status.NEEDS_ACTION);
-            connection.setAutoCommit(false);
-            pushDown(connection,0,taskListId);
-            PreparedStatement stm = connection.prepareStatement("INSERT INTO task (title, details, position, status, task_list_id) VALUES (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            stm.setString(1, task.getTitle());
-            stm.setString(2, task.getNotes());
-            stm.setInt(3, task.getPosition());
-            stm.setString(4, task.getStatus().toString());
-            stm.setInt(5, taskListId);
-
-            if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to save the task list");
-            }
-
-            ResultSet rst = stm.getGeneratedKeys();
-            rst.next();
-            task.setId(rst.getInt(1));
-            connection.commit();
-            resp.setContentType("application/json");
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            jsonb.toJson(task, resp.getWriter());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }catch (JsonbException e) {
-            throw new ResponseStatusException(500, e.getMessage(), e);
-        }finally {
-            try {
-                if (connection!=null && !connection.getAutoCommit()){
-                    connection.rollback();
-                    connection.close();
-                    connection.setAutoCommit(true);
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-    }
-
-    private void pushUp(Connection connection, int pos, int taskListId) throws SQLException {
-        PreparedStatement pstm = connection.
-                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
-        pstm.setInt(1, pos);
-        pstm.setInt(2, taskListId);
-        pstm.executeUpdate();
-    }
-    private void pushDown(Connection connection, int pos, int taskListId) throws SQLException {
-        PreparedStatement pstm = connection.
-                prepareStatement("UPDATE task t SET position = position - 1 WHERE t.position >= ? AND t.task_list_id = ? ORDER BY t.position");
-        pstm.setInt(1, pos);
-        pstm.setInt(2, taskListId);
-        pstm.executeUpdate();
-    }
-
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        TaskDTO task = getTaskList(req);
-        Connection connection=null;
-        try {
-            connection=pool.get().getConnection();
-            connection.setAutoCommit(false);
-            pushUp(connection,task.getPosition(),task.getTaskListId());
-            PreparedStatement stm = connection.prepareStatement("DELETE FROM task WHERE id=?");
-            stm.setInt(1,task.getId());
-            if (stm.executeUpdate()!=1){
-                throw new SQLException("Failed to delete the task");
-            }
-            connection.commit();
-            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (SQLException e) {
-            throw new ResponseStatusException(500, e.getMessage(),e);
-        }finally {
-            try {
-                if (connection!=null){
-                    connection.rollback();
-                    connection.close();
-                    connection.setAutoCommit(true);
-                }
-            } catch (SQLException e) {
-                logger.log(Level.SEVERE, e.getMessage(),e);
-            }
-        }
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String pattern = "^/([A-Fa-f0-9\\-]{36})/lists/(\\d+)/tasks/?$";
-        Matcher matcher = Pattern.compile(pattern).matcher(req.getPathInfo());
-        if (matcher.find()) {
-            String userId = matcher.group(1);
-            int taskListId = Integer.parseInt(matcher.group(2));
-
-            try (Connection connection = pool.get().getConnection()) {
-                PreparedStatement stm = connection.prepareStatement("SELECT * FROM task_list t WHERE t.id=? AND t.user_id=?");
-                stm.setInt(1, taskListId);
-                stm.setString(2, userId);
-                if (!stm.executeQuery().next()) {
-                    throw new ResponseStatusException(404, "Invalid task list id");
-                }
-
-                stm = connection.prepareStatement("SELECT * FROM task WHERE task.task_list_id = ? ORDER BY position");
-                stm.setInt(1, taskListId);
-                ResultSet rst = stm.executeQuery();
-
-                List<TaskDTO> tasks = new ArrayList<>();
-                while (rst.next()) {
-                    int id = rst.getInt("id");
-                    String title = rst.getString("title");
-                    String details = rst.getString("details");
-                    int position = rst.getInt("position");
-                    String status = rst.getString("status");
-                    tasks.add(new TaskDTO(id, title, position, details, status, taskListId));
-                }
-
-                resp.setContentType("application/json");
-                Jsonb jsonb = JsonbBuilder.create();
-                String jsonArray = jsonb.toJson(tasks);
-
-                JsonParser parser = Json.createParser(new StringReader(jsonArray));
-                parser.next();
-                JsonArray tasksArray = parser.getArray();
-
-                JsonObject json = Json.createObjectBuilder().
-                        add("resource", Json.createObjectBuilder().add("items", tasksArray)).build();
-                resp.getWriter().println(json);
-            } catch (SQLException e) {
-                throw new ResponseStatusException(500, e.getMessage(), e);
-            }
-
-        } else {
-            TaskDTO task = getTaskList(req);
-            resp.setContentType("application/json");
-            Jsonb jsonb = JsonbBuilder.create();
-            jsonb.toJson(task, resp.getWriter());
-        }
-    }
-
-    @Override
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (req.getContentType() == null || !req.getContentType().startsWith("application/json")) {
-            throw new ResponseStatusException(415, "Invalid content type or content type is empty");
-        }
-
-        TaskDTO oldTask = getTaskList(req);
-        Connection connection = null;
         try {
             Jsonb jsonb = JsonbBuilder.create();
             TaskDTO newTask = jsonb.fromJson(req.getReader(), TaskDTO.class);
-
             if (newTask.getTitle() == null || newTask.getTitle().trim().isEmpty()) {
                 throw new ResponseStatusException(400, "Invalid title or title is empty");
             } else if (newTask.getPosition() == null || newTask.getPosition() < 0) {
                 throw new ResponseStatusException(400, "Invalid position or position value is empty");
             }
 
-            connection = pool.get().getConnection();
-            connection.setAutoCommit(false);
-            if (!oldTask.getPosition().equals(newTask.getPosition())) {
-                pushUp(connection, oldTask.getPosition(), oldTask.getTaskListId());
-                pushDown(connection, newTask.getPosition(), oldTask.getTaskListId());
-            }
+            service.updateTask(userId, taskListId, taskId, newTask);
 
-            PreparedStatement stm = connection.
-                    prepareStatement("UPDATE task SET title=?, details=?, position=?, status=? WHERE id=?");
-            stm.setString(1, newTask.getTitle());
-            stm.setString(2, newTask.getNotes());
-            stm.setInt(3, newTask.getPosition());
-            stm.setString(4, newTask.getStatus());
-            stm.setInt(5, oldTask.getId());
-            if (stm.executeUpdate() != 1) {
-                throw new SQLException("Failed to update the task");
-            }
-
-            connection.commit();
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (JsonbException e) {
             throw new ResponseStatusException(400, "Invalid JSON");
-        } catch (SQLException e) {
+        } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
-        } finally {
-            if (connection != null) {
-                try {
-                    if (!connection.getAutoCommit()) {
-                        connection.rollback();
-                        connection.setAutoCommit(true);
-                    }
-                    connection.close();
-                } catch (SQLException e) {
-                    logger.log(Level.SEVERE, e.getMessage(), e);
-                }
-            }
         }
     }
 }

@@ -41,10 +41,6 @@ public class TaskDTO implements Serializable {
         this.taskListId = taskListId;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public Integer getTaskListId() {
         return taskListId;
     }
