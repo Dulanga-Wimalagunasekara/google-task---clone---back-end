@@ -165,12 +165,14 @@ public class TaskServlet extends HttpServlet2 {
         try {
             Jsonb jsonb = JsonbBuilder.create();
             TaskDTO newTask = jsonb.fromJson(req.getReader(), TaskDTO.class);
-            service.updateTask(userId, taskListId, taskId, newTask);
             if (newTask.getTitle() == null || newTask.getTitle().trim().isEmpty()) {
                 throw new ResponseStatusException(400, "Invalid title or title is empty");
             } else if (newTask.getPosition() == null || newTask.getPosition() < 0) {
                 throw new ResponseStatusException(400, "Invalid position or position value is empty");
             }
+
+            service.updateTask(userId, taskListId, taskId, newTask);
+
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (JsonbException e) {
             throw new ResponseStatusException(400, "Invalid JSON");
