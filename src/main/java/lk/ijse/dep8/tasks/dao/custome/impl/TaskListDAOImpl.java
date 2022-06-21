@@ -25,11 +25,13 @@ public class TaskListDAOImpl implements TaskListDAO {
                 PreparedStatement stm = connection.prepareStatement("INSERT INTO task_list (name, user_id) VALUES (?,?)",Statement.RETURN_GENERATED_KEYS);
                 stm.setString(1, list.getName());
                 stm.setString(2, list.getUserId());
-                ResultSet rst = stm.getGeneratedKeys();
-                rst.next();
-                list.setId(rst.getInt(1));
-                if (stm.executeUpdate() != 1) {
-                    throw new SQLException("Failed to save the user");
+                if (stm.executeUpdate()==1){
+                    ResultSet rst = stm.getGeneratedKeys();
+                    rst.next();
+                    list.setId(rst.getInt(1));
+                    if (stm.executeUpdate() != 1) {
+                        throw new SQLException("Failed to save the user");
+                    }
                 }
             } else {
                 PreparedStatement stm = connection.prepareStatement("UPDATE task_list SET name=?, user_id=? WHERE id=?");

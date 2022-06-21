@@ -58,7 +58,7 @@ public class TaskListServlet extends HttpServlet2 {
             resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_CREATED);
             jsonb.toJson(list, resp.getWriter());
-        } catch (Throwable e) {
+        } catch (Throwable e){
             throw new ResponseStatusException(500, e.getMessage(), e);
         }
 
