@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-public interface crudDAO<T extends SuperEntity,ID extends Serializable> extends SuperDAO {
+public interface CrudDAO<T extends SuperEntity,ID extends Serializable> extends SuperDAO {
 
     T save(T entity);
 

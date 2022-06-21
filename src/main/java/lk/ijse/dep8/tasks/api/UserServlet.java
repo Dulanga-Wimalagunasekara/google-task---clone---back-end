@@ -2,7 +2,6 @@ package lk.ijse.dep8.tasks.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbException;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
 import lk.ijse.dep8.tasks.service.custome.UserService;
@@ -15,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.logging.Logger;
 
 @WebServlet(name = "UserServlet")
