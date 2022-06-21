@@ -2,10 +2,8 @@ package lk.ijse.dep8.tasks.dao.custome.impl;
 
 import lk.ijse.dep8.tasks.dao.custome.QueryDAO;
 import lk.ijse.dep8.tasks.dao.exception.DataAccessException;
-import lk.ijse.dep8.tasks.dto.TaskDTO;
 import lk.ijse.dep8.tasks.entity.SuperEntity;
 import lk.ijse.dep8.tasks.entity.Task;
-import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,6 +13,7 @@ import java.sql.SQLException;
 public class QueryDAOImpl implements QueryDAO {
 
     private Connection connection;
+
     public QueryDAOImpl(Connection connection) {
         this.connection = connection;
     }
@@ -33,12 +32,12 @@ public class QueryDAOImpl implements QueryDAO {
                 String details = rst.getString("details");
                 int position = rst.getInt("position");
                 String status = rst.getString("status");
-                return new Task(taskId, title, details,position, Task.Status.valueOf(status), taskListId);
+                return new Task(taskId, title, details, position, Task.Status.valueOf(status), taskListId);
             } else {
                 throw new DataAccessException("Invalid user id or Task list id");
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to get the taskList",e);
+            throw new DataAccessException("Failed to get the taskList", e);
         }
     }
 }

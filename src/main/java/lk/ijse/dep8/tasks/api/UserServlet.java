@@ -2,20 +2,20 @@ package lk.ijse.dep8.tasks.api;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbException;
 import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
 import lk.ijse.dep8.tasks.service.custome.UserService;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
-import javax.servlet.annotation.*;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.logging.Logger;
 
 @WebServlet(name = "UserServlet")
@@ -29,7 +29,7 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(404, "Not found");
         }
         String userId = request.getPathInfo().replaceAll("/", "");
-        try{
+        try {
             UserService userService = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
             if (!userService.existsUser(userId)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_NOT_FOUND, "Invalid User");
@@ -71,22 +71,22 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid email");
         } else if (password == null || password.trim().isEmpty()) {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Password can not be empty");
-        } else if (picture != null && picture.getSize()==0 || !picture.getContentType().startsWith("image")) {
+        } else if (picture != null && picture.getSize() == 0 || !picture.getContentType().startsWith("image")) {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid picture");
         }
 
         try {
             UserService UserService = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
-            if(UserService.existsUser(email)){
+            if (UserService.existsUser(email)) {
                 throw new ResponseStatusException(HttpServletResponse.SC_CONFLICT, "User already exists");
             }
-            String pictureUrl=null;
-            if (picture!=null){
-                pictureUrl = request.getScheme() + "://" + request.getServerName() +":" + request.getServerPort()
-                        + request.getContextPath()+"/uploads/";
+            String pictureUrl = null;
+            if (picture != null) {
+                pictureUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+                        + request.getContextPath() + "/uploads/";
             }
             UserDTO user = new UserDTO(null, name, email, password, pictureUrl);
-            user = UserService.registerUser(picture,getServletContext().getRealPath("/"), user);
+            user = UserService.registerUser(picture, getServletContext().getRealPath("/"), user);
             response.setStatus(HttpServletResponse.SC_CREATED);
             response.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
@@ -101,9 +101,9 @@ public class UserServlet extends HttpServlet2 {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         UserDTO user = getUser(req);
-        try{
+        try {
             UserService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
-            service.deleteUser(user.getId(),getServletContext().getRealPath("/"));
+            service.deleteUser(user.getId(), getServletContext().getRealPath("/"));
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Throwable e) {
             throw new ResponseStatusException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete the user", e);
@@ -126,11 +126,11 @@ public class UserServlet extends HttpServlet2 {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid name or name is empty");
         } else if (password == null || password.trim().isEmpty()) {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Password can't be empty");
-        } else if (picture != null && picture.getSize()==0 || !picture.getContentType().startsWith("image")) {
+        } else if (picture != null && picture.getSize() == 0 || !picture.getContentType().startsWith("image")) {
             throw new ResponseStatusException(HttpServletResponse.SC_BAD_REQUEST, "Invalid picture");
         }
 
-        try{
+        try {
             String pictureUrl = null;
             if (picture != null) {
                 pictureUrl = request.getScheme() + "://" + request.getServerName() + ":"
@@ -139,11 +139,11 @@ public class UserServlet extends HttpServlet2 {
             }
             UserDTO userDTO = new UserDTO(user.getId(), name, user.getEmail(), password, pictureUrl);
             UserService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.USER);
-            service.updateUser(userDTO,picture,getServletContext().getRealPath("/"));
+            service.updateUser(userDTO, picture, getServletContext().getRealPath("/"));
             resp.setStatus(204);
         } catch (ResponseStatusException e) {
             throw e;
-        }catch (Throwable t){
+        } catch (Throwable t) {
             throw new ResponseStatusException(500, t.getMessage(), t);
         }
     }

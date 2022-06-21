@@ -7,35 +7,20 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.stream.JsonParser;
-import lk.ijse.dep8.tasks.dao.DAOFactory;
-import lk.ijse.dep8.tasks.dao.SuperDAO;
-import lk.ijse.dep8.tasks.dao.custome.QueryDAO;
 import lk.ijse.dep8.tasks.dto.TaskDTO;
-import lk.ijse.dep8.tasks.dto.UserDTO;
 import lk.ijse.dep8.tasks.service.ServiceFactory;
-import lk.ijse.dep8.tasks.service.SuperService;
 import lk.ijse.dep8.tasks.service.custome.TaskService;
-import lk.ijse.dep8.tasks.service.custome.UserService;
-import lk.ijse.dep8.tasks.service.exception.FailedExecutionException;
 import lk.ijse.dep8.tasks.util.HttpServlet2;
 import lk.ijse.dep8.tasks.util.ResponseStatusException;
 
-import javax.annotation.PostConstruct;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import javax.servlet.annotation.*;
-import javax.sql.DataSource;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +71,7 @@ public class TaskServlet extends HttpServlet2 {
         int taskId = Integer.parseInt(matcher.group(3));
         try {
             TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
-            service.deleteTask(userId,taskListId,taskId);
+            service.deleteTask(userId, taskListId, taskId);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Throwable e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
@@ -135,9 +120,9 @@ public class TaskServlet extends HttpServlet2 {
             Optional<TaskDTO> taskDTO = service.getSpecificTask(taskListId, userId, taskId);
             resp.setContentType("application/json");
             Jsonb jsonb = JsonbBuilder.create();
-            if (taskDTO.isPresent()){
+            if (taskDTO.isPresent()) {
                 jsonb.toJson(taskDTO.get(), resp.getWriter());
-            }else {
+            } else {
                 resp.getWriter().println("Empty");
             }
         }

@@ -24,6 +24,7 @@ public class oldUserDAOImpl {
             return null;
         }
     }
+
     public  UserDTO saveUser(Connection con,UserDTO user)throws SQLException{
         PreparedStatement stm = con.prepareStatement("INSERT INTO user (id,email, password, full_name,profile_pic) VALUES (?,?,?,?,?)");
         String id = UUID.randomUUID().toString();
@@ -58,6 +59,7 @@ public class oldUserDAOImpl {
         }
 
     }
+
     public  boolean existsUser(Connection con, String emailOrId) throws SQLException {
         PreparedStatement statement = con.prepareStatement("SELECT * FROM user WHERE email=? OR id=?");
         statement.setString(1, emailOrId);
@@ -65,7 +67,5 @@ public class oldUserDAOImpl {
         return (statement.executeQuery().next());
 
     }
-
-
 
 }

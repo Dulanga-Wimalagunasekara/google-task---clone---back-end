@@ -7,7 +7,7 @@ import lk.ijse.dep8.tasks.entity.Task;
 import lk.ijse.dep8.tasks.entity.TaskList;
 import lk.ijse.dep8.tasks.entity.User;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
+
 public class EntityDTOMapper {
     public static UserDTO getUserDTO(User user) {
         ModelMapper mapper = new ModelMapper();
@@ -30,21 +30,22 @@ public class EntityDTOMapper {
                 .map(task);
     }
 
-    public static User getUser(UserDTO userDTO){
+    public static User getUser(UserDTO userDTO) {
         ModelMapper mapper = new ModelMapper();
         return mapper.typeMap(UserDTO.class, User.class)
                 .addMapping(UserDTO::getPicture, User::setProfilePic)
+                .addMapping(UserDTO::getName,User::setFullName)
                 .map(userDTO);
     }
 
-    public static TaskList getTaskList(TaskListDTO taskListDTO){
+    public static TaskList getTaskList(TaskListDTO taskListDTO) {
         ModelMapper mapper = new ModelMapper();
         return mapper.typeMap(TaskListDTO.class, TaskList.class)
                 .addMapping(TaskListDTO::getTitle, TaskList::setName)
                 .map(taskListDTO);
     }
 
-    public static Task getTask(TaskDTO taskDTO){
+    public static Task getTask(TaskDTO taskDTO) {
         ModelMapper mapper = new ModelMapper();
         return mapper.typeMap(TaskDTO.class, Task.class)
                 .addMapping(TaskDTO::getNotes, Task::setDetails)
