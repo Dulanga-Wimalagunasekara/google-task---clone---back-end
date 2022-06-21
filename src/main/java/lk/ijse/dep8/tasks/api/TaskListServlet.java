@@ -113,8 +113,9 @@ public class TaskListServlet extends HttpServlet2 {
         } catch (JsonbException e) {
             throw new ResponseStatusException(400, "Invalid JSON", e);
         }
+        TaskListDTO oldTaskList = getTaskList(req);
         TaskService service = ServiceFactory.getInstance().getService(ServiceFactory.ServiceTypes.TASK);
-        service.updateTaskList(newTaskList);
+        service.updateTaskList(newTaskList,oldTaskList);
         try {
             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (FailedExecutionException e) {

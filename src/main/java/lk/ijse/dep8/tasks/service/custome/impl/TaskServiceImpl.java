@@ -225,11 +225,15 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void updateTaskList(TaskListDTO newTaskList) {
+    public void updateTaskList(TaskListDTO newTaskList,TaskListDTO oldTaskList) {
         try {
             Connection connection = dataSource.getConnection();
             if (newTaskList.getTitle() == null || newTaskList.getTitle().trim().isEmpty()){
                 throw new FailedExecutionException("Invalid title or title is Empty");
+            }
+            if (newTaskList.getId()==null || newTaskList.getUserID()==null){
+                newTaskList.setUserID(oldTaskList.getUserID());
+                newTaskList.setId(oldTaskList.getId());
             }
             TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
             taskListDAO.save(EntityDTOMapper.getTaskList(newTaskList));

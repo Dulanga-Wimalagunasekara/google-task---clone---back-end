@@ -36,6 +36,7 @@ public class TaskListDAOImpl implements TaskListDAO {
             } else {
                 PreparedStatement stm = connection.prepareStatement("UPDATE task_list SET name=?, user_id=? WHERE id=?");
                 stm.setString(1, list.getName());
+                System.out.println(list.getUserId());
                 stm.setString(2, list.getUserId());
                 stm.setInt(3, list.getId());
                 if (stm.executeUpdate() != 1) {
@@ -146,9 +147,9 @@ public class TaskListDAOImpl implements TaskListDAO {
             stm.setInt(1, taskListId);
             stm.setString(2, userId);
             ResultSet rst = stm.executeQuery();
-            if (stm.executeQuery().next()){
+            if (rst.next()){
                 return Optional.of(new TaskList(rst.getInt("id"),rst.getString("name"),
-                        rst.getString("userId")));
+                        rst.getString("user_id")));
             }else {
                 return Optional.empty();
             }
