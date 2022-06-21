@@ -51,7 +51,7 @@ public class TaskServlet extends HttpServlet2 {
             resp.setContentType("application/json");
             resp.setStatus(HttpServletResponse.SC_CREATED);
             jsonb.toJson(savedTask, resp.getWriter());
-        } catch (Throwable e) {
+        } catch (JsonbException e) {
             throw new ResponseStatusException(500, e.getMessage(), e);
         }
 

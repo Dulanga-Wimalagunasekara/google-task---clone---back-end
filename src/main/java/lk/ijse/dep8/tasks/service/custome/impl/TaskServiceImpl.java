@@ -48,7 +48,7 @@ public class TaskServiceImpl implements TaskService {
             Connection connection = dataSource.getConnection();
             TaskListDAO taskListDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK_LIST);
             boolean isExists = taskListDAO.existTaskListByIdAndUserId(taskListId, userId);
-            if (isExists){
+            if (!isExists){
                 throw new FailedExecutionException("Invalid user id or Task list id");
             }
             if (task == null || task.getTitle().trim().isEmpty()) {
@@ -57,12 +57,13 @@ public class TaskServiceImpl implements TaskService {
             connection.setAutoCommit(false);
             pushDown(connection, 0, taskListId);
             TaskDAO taskDAO = DAOFactory.getInstance().getDAO(connection, DAOFactory.DAOTypes.TASK);
+            task.setTaskListId(taskListId);
             Task taskEntity = EntityDTOMapper.getTask(task);
             Task save = taskDAO.save(taskEntity);
             connection.commit();
             TaskDTO taskDTO = EntityDTOMapper.getTaskDTO(save);
             return taskDTO;
-        } catch (SQLException e) {
+        } catch (Throwable e){
             throw new RuntimeException(e);
         }
 
